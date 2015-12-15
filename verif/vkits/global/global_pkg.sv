@@ -1,8 +1,7 @@
-
 // ***********************************************************************
-// File:   cmn_pkg.sv
+// File:   global_pkg.sv
 // Author: bhunter
-/* About:  Common package
+/* About:  Global Package
    Copyright (C) 2015  Brian P. Hunter
 
    This program is free software; you can redistribute it and/or modify
@@ -16,27 +15,23 @@
    GNU General Public License for more details.
  *************************************************************************/
 
+
 `include "uvm_macros.svh"
 `include "cmn_macros.sv"
+`include "global_macros.sv"
 
-// package: cmn_pkg
-package cmn_pkg;
+package global_pkg;
 
-   //----------------------------------------------------------------------------------------
-   // Imports
+   //--------------------------------------------------------------------------
+   // Group: Imports
    import uvm_pkg::*;
-   localparam UVM_COMPONENT = UVM_NOPACK | UVM_NOCOMPARE | UVM_NOCOPY;
 
-   //----------------------------------------------------------------------------------------
-   // Includes
+   //--------------------------------------------------------------------------
+   // Group: Includes
+`include "global_heartbeat_mon.sv"
+`include "global_watchdog.sv"
+`include "global_env.sv"
 
-`include "cmn_clk_drv.sv"
-`include "cmn_cseq.sv"
-`include "cmn_csqr.sv"
-`include "cmn_msgs.sv"
-`include "cmn_objection.sv"
-`include "cmn_report_server.sv"
-`include "cmn_rst_drv.sv"
+endpackage : global_pkg
 
-endpackage : cmn_pkg
 

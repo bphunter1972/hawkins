@@ -8,6 +8,7 @@
 
 -f root/verif/vkits/uvm/1_2/vcs.flist
 -f root/verif/vkits/cmn/vcs.flist
+-f root/verif/vkits/global/vcs.flist
 -f root/verif/vkits/hawk/vcs.flist
 
 +incdir+root/verif/hawk
