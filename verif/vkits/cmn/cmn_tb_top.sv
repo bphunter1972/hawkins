@@ -19,22 +19,15 @@
    GNU General Public License for more details.
  *************************************************************************/
 
-   // initial begin : fsdb_setup
-   //    if($test$plusargs("fsdb_trace")) begin
-   //       string fsdb_outfile;
-   //       int fsdb_depth;
-   //       `ifdef UVM_MAJOR_VERSION_1_1
-   //          static sps_pkg::sps_tr_recorder my_recorder = new();
-
-   //          uvm_default_recorder = my_recorder;
-   //          uvm_config_db#(int)::set(uvm_top, "*", "recording_detail", UVM_FULL);
-   //       `endif // UVM_MAJOR_VERSION_1_1
-
-   //       $value$plusargs("fsdb_outfile=%s", fsdb_outfile);
-   //       $value$plusargs("fsdb_depth=%d", fsdb_depth);
-   //       $fsdbDumpvars(fsdb_depth, `SYS_TB_PATH, "+all", $sformatf("+fsdbfile+%s", fsdb_outfile));
-   //    end
-   // end : fsdb_setup
+   initial begin : fsdb_setup
+      if($test$plusargs("fsdb_trace")) begin
+         string fsdb_outfile = "sim.fsdb";
+         int fsdb_depth=0;
+         $value$plusargs("fsdb_outfile=%s", fsdb_outfile);
+         $value$plusargs("fsdb_depth=%d", fsdb_depth);
+         $fsdbDumpvars(fsdb_depth, $root.tb_top, "+all", $sformatf("+fsdbfile+%s", fsdb_outfile));
+      end
+   end : fsdb_setup
 
    /////////////////////////////////////////////////////////////////////////////
    // 1. replace the UVM report server with our cavium one.

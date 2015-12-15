@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 
 from __future__ import print_function
 import subprocess
@@ -35,13 +35,13 @@ def clean():
     dirs = ['csrc', 'simv.daidir', 'sim']
     files = ['novas_dump.log', 'simv', 'tr_db.log', 'ucli.key', 'vc_hdrs.h']
 
-    for d in dirs:
+    for dirname in dirs:
         try:
-            shutil.rmtree(d)
+            shutil.rmtree(dirname)
         except OSError:
             pass
         else:
-            print("Removed {}".format(d))
+            print("Removed {}".format(dirname))
 
     for f in files:
         try:
@@ -50,7 +50,7 @@ def clean():
             pass
         else:
             print("Removed {}".format(f))
-            
+
 ########################################################################################
 if __name__ == '__main__':
     cmd_args = parse_args()
