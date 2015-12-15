@@ -1,4 +1,3 @@
-//-bc=cb_extended_behavior 
 -timescale=1ns/1fs 
 -unit_timescale=1ns/1fs 
 -sverilog 
@@ -6,8 +5,6 @@
 +vcsd 
 -debug_pp
 +define+UVM_USE_RESOURCE_CONVERTER
-
-//+acc +vpi +vcs+flush+all 
 
 -f root/verif/vkits/uvm/1_2/vcs.flist
 -f root/verif/vkits/cmn/vcs.flist
