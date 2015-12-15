@@ -58,9 +58,6 @@ class base_test_c extends uvm_test;
    // func: build_phase
    virtual function void build_phase(uvm_phase phase);
       super.build_phase(phase);
-      // Create the global environment
-      global_pkg::env = global_pkg::env_c::type_id::create("global_env", this);
-
       // create the random configurations
       cfg = hawk_pkg::cfg_c::type_id::create("cfg");
 
@@ -101,7 +98,6 @@ class base_test_c extends uvm_test;
    // func: connect_phase
    virtual function void connect_phase(uvm_phase phase);
       super.connect_phase(phase);
-      global_pkg::env.set_stats_clk(tb_clk_drv);
    endfunction : connect_phase
 
    ////////////////////////////////////////////

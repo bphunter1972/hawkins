@@ -34,6 +34,7 @@ class basic_test_c extends base_test_c;
    function new(string name="<name>",
                 uvm_component parent=null);
       super.new(name, parent);
+      `cmn_info(("Hello!"))
    endfunction : new
 
    ////////////////////////////////////////////
@@ -42,10 +43,13 @@ class basic_test_c extends base_test_c;
       hawk_pkg::phy_trn_seq_c rx_trn_seq, tx_trn_seq;
       rx_trn_seq = hawk_pkg::phy_trn_seq_c::type_id::create("rx_trn_seq");
       tx_trn_seq = hawk_pkg::phy_trn_seq_c::type_id::create("rx_trn_seq");
+
+      phase.raise_objection(this);
       fork
          rx_trn_seq.start(hawk_env.rx_agent.phy_csqr);
          tx_trn_seq.start(hawk_env.tx_agent.phy_csqr);
       join
+      phase.drop_objection(this);
    endtask : run_phase
 
 endclass : basic_test_c

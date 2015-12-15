@@ -28,9 +28,10 @@ typedef class link_csqr_c;
 // class: link_cseq_c
 // Sends link-level items, receives link-level requests
 // Also receives from upstream transaction-level items and sends back transaction level items
-class link_cseq_c extends uvm_sequence#(link_item_c);
+class link_cseq_c extends cmn_pkg::cseq_c#(link_item_c, link_item_c,
+                                           trans_item_c, trans_item_c,
+                                           link_csqr_c);
    `uvm_object_utils(hawk_pkg::link_cseq_c)
-   `uvm_declare_p_sequencer(link_csqr_c)
 
    //----------------------------------------------------------------------------------------
    // Group: Fields
@@ -42,12 +43,12 @@ class link_cseq_c extends uvm_sequence#(link_item_c);
    // var: replay_buffer
    // All of the link items that have been sent go here until either acknowledged or NAK is
    // received
-   link_item_c replay_buffer[$];
+   DOWN_REQ replay_buffer[$];
 
    // var: ack_buffer
    // Incoming link-level items that must be either ACKed or NAKed
    // after ACK, send as upstream response
-   link_item_c ack_buffer[$];
+   DOWN_REQ ack_buffer[$];
 
    // var: acks_to_send
    // Each bit will send an acknowledge. If the bit is 1, then send a NAK
@@ -74,19 +75,19 @@ class link_cseq_c extends uvm_sequence#(link_item_c);
 
       // fork off all of these threads
       fork
-         handle_trans_items();
-         handle_rsp();
+         handle_up_items();
+         handle_down_rsp();
          send_ack_nak();
       join
    endtask : body
 
    ////////////////////////////////////////////
-   // func: handle_trans_items
+   // func: handle_up_items
    // Manage all upstream transaction items, wrapping them with LINK ID and
    // sending them on as link-level items
-   virtual task handle_trans_items();
-      trans_item_c trans_item;
-      link_item_c link_item;
+   virtual task handle_up_items();
+      UP_REQ trans_item;
+      DOWN_REQ link_item;
       forever begin
          p_sequencer.get_up_item(trans_item);
          `cmn_dbg(200, ("RX from LOG: %s", trans_item.convert2string()))
@@ -102,15 +103,15 @@ class link_cseq_c extends uvm_sequence#(link_item_c);
          replay_buffer.push_back(link_item);
          `cmn_dbg(200, ("TX to   PHY: %s", link_item.convert2string()))
       end
-   endtask : handle_trans_items
+   endtask : handle_up_items
 
    ////////////////////////////////////////////
-   // func: handle_rsp
+   // func: handle_down_rsp
    // Handle all link-level responses from the PHY level.  All ACKs pull from
    // the replay buffer and are thrown away. All NAKs are replayed.
    // All incoming packets are pushed as upstream responses
-   virtual task handle_rsp();
-      link_item_c replay;
+   virtual task handle_down_rsp();
+      DOWN_REQ replay;
 
       forever begin
          get_response(rsp);
@@ -132,14 +133,14 @@ class link_cseq_c extends uvm_sequence#(link_item_c);
                `cmn_err(("Link-layer must never see these: %s", rsp.convert2string()))
          endcase
       end
-   endtask : handle_rsp
+   endtask : handle_down_rsp
 
    ////////////////////////////////////////////
    // func: send_ack_nak
    // Fetch acks to be sent from the acks_to_send mailbox and send them
    virtual task send_ack_nak();
       bit send_nak;
-      link_item_c ack_item;
+      DOWN_REQ ack_item;
       phy_char_e phy_char;
       forever begin
          acks_to_send.get(send_nak);
@@ -156,7 +157,7 @@ class link_cseq_c extends uvm_sequence#(link_item_c);
    // func: retry_item
    // Pulls from the replay buffer and re-sends a packet
    virtual task retry_item();
-      link_item_c replay;
+      DOWN_REQ replay;
 
       replay = replay_buffer.pop_front();
       if(replay == null)

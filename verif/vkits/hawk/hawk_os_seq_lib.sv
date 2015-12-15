@@ -20,6 +20,9 @@
    GNU General Public License for more details.
  *************************************************************************/
 
+`ifndef __HAWK_OS_SEQ_LIB_SV__
+   `define __HAWK_OS_SEQ_LIB_SV__
+
 // class: os_main_seq_c
 class os_main_seq_c extends uvm_sequence#(os_item_c);
    `uvm_object_utils(hawk_pkg::os_main_seq_c)

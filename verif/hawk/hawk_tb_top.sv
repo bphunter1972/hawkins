@@ -16,8 +16,6 @@
    GNU General Public License for more details.
  *************************************************************************/
 
-`include "cmn_defines.vh"
-
 import uvm_pkg::*;
 
 // package: hawk_tb_top
@@ -33,7 +31,7 @@ module hawk_tb_top;
 
    // obj: tb_rst_i
    // Testbench reset interface
-   cmn_rst_intf tb_rst_i();
+   cmn_rst_intf tb_rst_i(.clk(tb_clk));
    wire tb_rst_n = tb_rst_i.rst_n;
 
    // obj: hawk_tx_i
@@ -59,4 +57,9 @@ module hawk_tb_top;
       `cmn_set_intf(virtual hawk_intf.drv_mp, "hawk_pkg::hawk_intf", "hawk_rx_vi", hawk_rx_i)
       `cmn_set_intf(virtual hawk_intf.mon_mp, "hawk_pkg::hawk_intf", "hawk_rx_vi", hawk_rx_i)
    endfunction : pre_run_test
+
+   initial begin
+      pre_run_test();
+      run_test();
+   end
 endmodule : hawk_tb_top
