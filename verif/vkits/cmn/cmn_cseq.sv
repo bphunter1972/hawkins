@@ -16,8 +16,8 @@
    GNU General Public License for more details.
  *************************************************************************/
 
-`ifndef __CN_CSEQ_SV__
-   `define __CN_CSEQ_SV__
+`ifndef __CMN_CSEQ_SV__
+   `define __CMN_CSEQ_SV__
 
 `include "cmn_csqr.sv"
 
@@ -94,5 +94,5 @@ class cseq_c#(type DOWN_REQ=uvm_sequence_item,
 
 endclass : cseq_c
 
-`endif // __CN_CSEQ_SV__
+`endif // __CMN_CSEQ_SV__
 

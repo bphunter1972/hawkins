@@ -218,7 +218,6 @@
             report_message.set_verbosity(0);
          super.process_report_message(report_message);
       endfunction : process_report_message
-
    endclass : report_server_c
 
 `endif // __CMN_REPORT_SERVER_1_2_SV__
