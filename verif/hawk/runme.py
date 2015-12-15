@@ -12,4 +12,3 @@ if __name__ == '__main__':
     cmd = 'qrsh -q verilog -l lic_sim_vcs=1 simv +UVM_TESTNAME=basic_test_c +UVM_NO_RELNOTES'
     p = subprocess.Popen(cmd, stdout=sys.stdout, stderr=subprocess.STDOUT, shell=True)
     stdout, stderr = p.communicate()
-    print("Done!")
