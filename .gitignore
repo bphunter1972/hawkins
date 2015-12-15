@@ -6,3 +6,6 @@ verif/hawk/tr_db.log
 verif/hawk/ucli.key
 verif/hawk/vc_hdrs.h
 verif/hawk/sim/
+verif/hawk/novas_dump.log
+verif/hawk/novas.conf
+verif/hawk/verdiLog/
