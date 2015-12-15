@@ -26,10 +26,10 @@
          uvm_report_object report_object;                                             \
          uvm_sequence_item sequence_item;                                             \
          if($cast(report_object, this) || $cast(sequence_item, this)) begin           \
-            uvm_report_info(full_name, $sformatf MSG, 0, `uvm_file, `uvm_line);       \
+            uvm_report(TYPE, full_name, $sformatf MSG, 0, `uvm_file, `uvm_line);      \
          end else begin                                                               \
             uvm_report_handler report_handler = uvm_top.get_report_handler();         \
-            report_handler.report(UVM_INFO, full_name, full_name, $sformatf MSG, LVL, \
+            report_handler.report(TYPE, full_name, full_name, $sformatf MSG, LVL,     \
                                   FILE, LINE, uvm_top);                               \
         end                                                                           \
       end                                                                             \
