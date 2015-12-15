@@ -34,7 +34,6 @@ class basic_test_c extends base_test_c;
    function new(string name="<name>",
                 uvm_component parent=null);
       super.new(name, parent);
-      `cmn_info(("Hello!"))
    endfunction : new
 
    ////////////////////////////////////////////
