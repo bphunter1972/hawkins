@@ -34,8 +34,8 @@ class env_c extends uvm_env;
    typedef enum { NORMAL, SLOW, SLOWER } heartbeat_rate_e;
 
    `uvm_component_utils_begin(global_pkg::env_c)
-      `uvm_field_int(topo_depth,        UVM_DEFAULT | UVM_DEC)
-      `uvm_field(heartbeat_rate_e, heartbeat_rate, UVM_DEFAULT)
+      `uvm_field_int(topo_depth, UVM_DEFAULT | UVM_DEC)
+      `uvm_field_enum(heartbeat_rate_e, heartbeat_rate, UVM_DEFAULT)
    `uvm_component_utils_end
 
    //----------------------------------------------------------------------------------------
