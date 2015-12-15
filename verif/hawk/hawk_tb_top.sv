@@ -18,9 +18,9 @@
 
 import uvm_pkg::*;
 
-// package: hawk_tb_top
+// package: tb_top
 // Top-level hawk testbench
-module hawk_tb_top;
+module tb_top;
    //----------------------------------------------------------------------------------------
    // Group: Interfaces
 
@@ -59,4 +59,4 @@ module hawk_tb_top;
    endfunction : pre_run_test
 
    `include "cmn_tb_top.sv"
-endmodule : hawk_tb_top
+endmodule : tb_top
