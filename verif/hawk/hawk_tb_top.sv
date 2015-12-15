@@ -58,8 +58,5 @@ module hawk_tb_top;
       `cmn_set_intf(virtual hawk_intf.mon_mp, "hawk_pkg::hawk_intf", "hawk_rx_vi", hawk_rx_i)
    endfunction : pre_run_test
 
-   initial begin
-      pre_run_test();
-      run_test();
-   end
+   `include "cmn_tb_top.sv"
 endmodule : hawk_tb_top

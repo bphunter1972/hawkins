@@ -1,8 +1,11 @@
 
 // ***********************************************************************
-// File:   cmn_pkg.sv
+// File:   cmn_report_server.sv
 // Author: bhunter
-/* About:  Common package
+/* About:  Basic test extends the base test and starts a training sequence
+           on both the RX and TX agent. This is done here to show that
+           numerous sequences can be started independently on a chaining
+           sequencer.
    Copyright (C) 2015  Brian P. Hunter
 
    This program is free software; you can redistribute it and/or modify
@@ -16,26 +19,15 @@
    GNU General Public License for more details.
  *************************************************************************/
 
-`include "uvm_macros.svh"
-`include "cmn_macros.sv"
+`ifndef __CMN_REPORT_SERVER_SV__
+   `define __CMN_REPORT_SERVER_SV__
 
-// package: cmn_pkg
-package cmn_pkg;
+`ifdef UVM_MAJOR_VERSION_1_1
+   `include "cmn_report_server_1_1.sv"
+`endif // UVM_MAJOR_VERSION_1_1
 
-   //----------------------------------------------------------------------------------------
-   // Imports
-   import uvm_pkg::*;
-   localparam UVM_COMPONENT = UVM_NOPACK | UVM_NOCOMPARE | UVM_NOCOPY;
+`ifdef UVM_MAJOR_VERSION_1_2
+   `include "cmn_report_server_1_2.sv"
+`endif // UVM_MAJOR_VERSION_1_2
 
-   //----------------------------------------------------------------------------------------
-   // Includes
-
-`include "cmn_clk_drv.sv"
-`include "cmn_cseq.sv"
-`include "cmn_csqr.sv"
-`include "cmn_msgs.sv"
-`include "cmn_report_server.sv"
-`include "cmn_rst_drv.sv"
-
-endpackage : cmn_pkg
-
+`endif // __CMN_REPORT_SERVER_SV__
