@@ -38,7 +38,7 @@ class env_c extends uvm_env;
    // Group: Fields
 
    // var: rx_agent, tx_agent
-   // The hawk rx_agent &  tx_agent
+   // The hawk rx_agent & tx_agent
    hawk_pkg::agent_c rx_agent, tx_agent;
 
    //----------------------------------------------------------------------------------------
@@ -52,8 +52,8 @@ class env_c extends uvm_env;
    // func: build_phase
    virtual function void build_phase(uvm_phase phase);
       super.build_phase(phase);
-      tx_agent = hawk_pkg::agent_c::type_id::create("tx_agent", this);
-      rx_agent = hawk_pkg::agent_c::type_id::create("rx_agent", this);
+      tx_agent = hawk_pkg::agent_c::type_id::create("rx_agent", this);
+      rx_agent = hawk_pkg::agent_c::type_id::create("tx_agent", this);
       uvm_config_db#(uvm_object)::set(this, "*", "cfg", cfg);
    endfunction : build_phase
 
