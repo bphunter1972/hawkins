@@ -26,7 +26,7 @@
          uvm_report_object report_object;                                             \
          uvm_sequence_item sequence_item;                                             \
          if($cast(report_object, this) || $cast(sequence_item, this)) begin           \
-            uvm_report(TYPE, full_name, $sformatf MSG, 0, `uvm_file, `uvm_line);      \
+            uvm_report(TYPE, "", $sformatf MSG, 0, `uvm_file, `uvm_line, full_name);  \
          end else begin                                                               \
             uvm_report_handler report_handler = uvm_top.get_report_handler();         \
             report_handler.report(TYPE, full_name, full_name, $sformatf MSG, LVL,     \
@@ -39,13 +39,14 @@
 // macro: `cmn_info(MSG)
 // Print the MSG argument out at debug level 0
 `define cmn_info(MSG) \
-  `cmn_base_msg(UVM_NONE, UVM_INFO, MSG, `uvm_file, `uvm_line)
+   `cmn_base_msg(UVM_NONE, UVM_INFO, MSG, `uvm_file, `uvm_line)
 
 ////////////////////////////////////////////
 // macro: `cmn_dbg(LVL, MSG)
 // Print the message MSG out at level LVL.
-  `define cmn_dbg(LVL, MSG) \
-  `cmn_base_msg(LVL, UVM_INFO, MSG, `uvm_file, `uvm_line)
+`define cmn_dbg(LVL, MSG) \
+   `cmn_base_msg(LVL, UVM_INFO, MSG, `uvm_file, `uvm_line)
+
 ////////////////////////////////////////////
 // macro: cmn_err(MSG)
 // Print out the MSG as an error.
@@ -108,7 +109,6 @@
 
 `define cmn_err_intf(MSG) \
    `cmn_base_intf(UVM_NONE, UVM_ERROR, MSG, `uvm_file, `uvm_line, $sformatf("%m"))
-
 
 `define cmn_fatal_intf(MSG) \
    `cmn_base_intf(UVM_NONE, UVM_FATAL, MSG, `uvm_file, `uvm_line, $sformatf("%m"))
