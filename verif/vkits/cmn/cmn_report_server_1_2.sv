@@ -58,13 +58,11 @@
          // turn off report counts by ID
          enable_report_id_count_summary = 0;
 
-         //Don't set dbglen on the command line, please use IDLEN instead
-         if(!$value$plusargs("dbglen=%d", max_ctx_len))
-           max_ctx_len = 30;
+         if(!$value$plusargs("ctxlen=%d", max_ctx_len))
+           max_ctx_len = 75;
 
-         //Don't set filelen on the command-line, pluse use FLEN instead
          if(!$value$plusargs("filelen=%d", max_flen))
-            max_flen = 18;
+            max_flen = 30;
          empty_str = {(max_flen){space_char}};
 
          if(!$test$plusargs("fullcomphier"))
