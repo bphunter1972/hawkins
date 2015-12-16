@@ -37,6 +37,7 @@ package cmn_pkg;
 `include "cmn_objection.sv"
 `include "cmn_report_server.sv"
 `include "cmn_rst_drv.sv"
+`include "cmn_uid.sv"
 
 endpackage : cmn_pkg
 

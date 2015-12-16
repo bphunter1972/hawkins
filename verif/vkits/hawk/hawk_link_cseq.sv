@@ -90,9 +90,10 @@ class link_cseq_c extends cmn_pkg::cseq_c#(link_item_c, link_item_c,
       DOWN_REQ link_item;
       forever begin
          p_sequencer.get_up_item(trans_item);
-         `cmn_dbg(200, ("RX from LOG: %s", trans_item.convert2string()))
+         `cmn_dbg(200, ("RX from TRN: %s", trans_item.convert2string()))
          `uvm_create(link_item)
          link_item.trans_item = trans_item;
+         link_item.uid = trans_item.uid.new_subid("LNK");
          `uvm_rand_send_pri_with(link_item, PKT_PRI, {
             phy_char == PKT;
             corrupt_crc dist {

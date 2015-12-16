@@ -34,6 +34,10 @@ class link_item_c extends uvm_sequence_item;
    //----------------------------------------------------------------------------------------
    // Group: Fields
 
+   // var: uid
+   // Unique ID
+   cmn_pkg::uid_c uid;
+
    // var: phy_char
    // When set to anything but PKT, this is what is sent instead
    rand phy_char_e phy_char;
@@ -65,6 +69,7 @@ class link_item_c extends uvm_sequence_item;
    // Group: Methods
    function new(string name="link");
       super.new(name);
+      uid = new("LNK");
    endfunction : new
 
    ////////////////////////////////////////////
@@ -101,7 +106,8 @@ class link_item_c extends uvm_sequence_item;
       case(phy_char)
          ACK, NAK: convert2string = phy_char.name();
          PKT: begin
-            convert2string = $sformatf("LINK_ID:%02X CRC:%02X PKT:%s", link_id, crc, trans_item.convert2string());
+            convert2string = $sformatf("%s LINK_ID:%02X CRC:%02X PKT:%s", uid.convert2string(),
+                                       link_id, crc, trans_item.convert2string());
             if(corrupt_crc)
                convert2string = {convert2string, " BAD_CRC"};
          end

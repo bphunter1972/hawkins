@@ -34,6 +34,10 @@ class trans_item_c extends uvm_sequence_item;
    //----------------------------------------------------------------------------------------
    // Group: Fields
 
+   // var: uid
+   // Unique ID
+   cmn_pkg::uid_c uid;
+
    // var: tag
    // transaction tag number
    rand tag_t tag;
@@ -60,13 +64,14 @@ class trans_item_c extends uvm_sequence_item;
    // Group: Methods
    function new(string name="trans_item");
       super.new(name);
+      uid = new("TRN");
    endfunction : new
 
    ////////////////////////////////////////////
    // func: convert2string
    // Single-line printing
    virtual function string convert2string();
-      convert2string = cmd.name();
+      convert2string = {uid.convert2string(), " ", cmd.name()};
       case(cmd)
          RD  : convert2string = $sformatf("%s TAG:%01x ADDR:%016X", convert2string, tag, addr);
          WR  : convert2string = $sformatf("%s ADDR:%016X DATA:%016X", convert2string, addr, data);

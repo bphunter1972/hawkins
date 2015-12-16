@@ -80,7 +80,9 @@ class trans_cseq_c extends uvm_sequence#(trans_item_c);
             UVM_READ: begin
                tag_t read_tag;
                get_a_free_tag(read_tag);
-               `uvm_do_with(trans_item, {
+               `uvm_create(trans_item)
+               trans_item.uid = os_item.uid.new_subid("TRN");
+               `uvm_rand_send_with(trans_item, {
                   tag == read_tag;
                   cmd == RD;
                   addr == os_item.addr;
@@ -89,7 +91,9 @@ class trans_cseq_c extends uvm_sequence#(trans_item_c);
                outstanding_reads[read_tag] = os_item;
             end
             UVM_WRITE: begin
-               `uvm_do_with(trans_item, {
+               `uvm_create(trans_item)
+               trans_item.uid = os_item.uid.new_subid("TRN");
+               `uvm_rand_send_with(trans_item, {
                   cmd == WR;
                   addr == os_item.addr;
                   data == os_item.data;
