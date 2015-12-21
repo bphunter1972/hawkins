@@ -85,10 +85,9 @@ class base_test_c extends uvm_test;
       uvm_config_db#(int)::set(this, "tb_rst_drv", "reset_time_ps", 20000);
       tb_rst_drv = cmn_pkg::rst_drv_c::type_id::create("tb_rst_drv", this);
 
-      uvm_config_db#(string)::set(this, "hawk_env.tx_agent.drv", "intf_name", "hawk_tx_vi");
-      uvm_config_db#(string)::set(this, "hawk_env.tx_agent.mon", "intf_name", "hawk_rx_vi");
-      uvm_config_db#(string)::set(this, "hawk_env.rx_agent.drv", "intf_name", "hawk_rx_vi");
-      uvm_config_db#(string)::set(this, "hawk_env.rx_agent.mon", "intf_name", "hawk_tx_vi");
+      // set agents to drive and monitor the correct interface
+      uvm_config_db#(string)::set(this, "hawk_env.tx_agent.*", "intf_name", "hawk_tx_vi");
+      uvm_config_db#(string)::set(this, "hawk_env.rx_agent.*", "intf_name", "hawk_rx_vi");
 
       uvm_config_db#(uvm_object_wrapper)::set(this, "hawk_env.*_agent.os_sqr.main_phase", "default_sequence", hawk_pkg::os_main_seq_c::type_id::get());
 
