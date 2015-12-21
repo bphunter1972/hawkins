@@ -96,6 +96,7 @@ class link_cseq_c extends cmn_pkg::cseq_c#(link_item_c, link_item_c,
          link_item.uid = trans_item.uid.new_subid("LNK");
          `uvm_rand_send_pri_with(link_item, PKT_PRI, {
             phy_char == PKT;
+            link_id == local::link_id;
             corrupt_crc dist {
                0 := (100-cfg.bad_crc_pct),
                1 := cfg.bad_crc_pct
