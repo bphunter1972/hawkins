@@ -113,7 +113,10 @@ class trans_cseq_c extends uvm_sequence#(trans_item_c);
          `cmn_dbg(200, ("RX from LNK: %s", rsp.convert2string()))
 
          case(rsp.cmd)
-            WR  : memory[rsp.addr] = rsp.data;
+            WR  : begin
+               memory[rsp.addr] = rsp.data;
+               `cmn_dbg(200, ("Wrote [%08X] = %016X", rsp.addr, rsp.data))
+            end
             RD  : send_read_response(rsp);
             RESP: begin
                if(outstanding_reads.exists(rsp.tag)) begin
@@ -153,8 +156,11 @@ class trans_cseq_c extends uvm_sequence#(trans_item_c);
       trans_item_c response_item;
       data_t rsp_data;
 
-      if(!memory.exists(_read_request.addr))
+      if(!memory.exists(_read_request.addr)) begin
          memory[_read_request.addr] = 0;
+         `cmn_warn(("Reading from uninitialized memory location [%016X]", _read_request.addr))
+      end
+
       rsp_data = memory[_read_request.addr];
 
       `uvm_do_with(response_item, {
