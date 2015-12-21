@@ -64,7 +64,7 @@ class phy_item_c extends uvm_sequence_item;
          convert2string = $sformatf("%s PKT D:%02X", convert2string, data);
       else if(data inside {ACK, NAK, TRN, EOP}) begin
          phy_char_e pchar = phy_char_e'(data);
-         convert2string = {convert2string, pchar.name()};
+         convert2string = {convert2string, " ", pchar.name()};
       end else
          convert2string = "IDLE";
    endfunction : convert2string
