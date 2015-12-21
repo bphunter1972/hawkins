@@ -29,6 +29,10 @@ class os_item_c extends uvm_sequence_item;
    //----------------------------------------------------------------------------------------
    // Group: Fields
 
+   // var: uid
+   // Unique ID
+   cmn_pkg::uid_c uid;
+
    // var: access
    // The command is either a read or a write
    rand uvm_access_e access;
@@ -51,13 +55,14 @@ class os_item_c extends uvm_sequence_item;
    // Group: Methods
    function new(string name="os");
       super.new(name);
+      uid = new("OS");
    endfunction : new
 
    ////////////////////////////////////////////
    // func: convert2string
    // Single-line printing
    virtual function string convert2string();
-      convert2string = $sformatf("%s ADDR:%016X DATA:%016X", access.name(), addr, data);
+      convert2string = $sformatf("%s %s ADDR:%016X DATA:%016X", uid.convert2string(), access.name(), addr, data);
    endfunction : convert2string
 
 endclass : os_item_c

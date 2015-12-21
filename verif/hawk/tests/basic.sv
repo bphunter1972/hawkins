@@ -35,19 +35,6 @@ class basic_test_c extends base_test_c;
                 uvm_component parent=null);
       super.new(name, parent);
    endfunction : new
-
-   ////////////////////////////////////////////
-   // func: run_phase
-   virtual task run_phase(uvm_phase phase);
-      hawk_pkg::phy_trn_seq_c rx_trn_seq, tx_trn_seq;
-      rx_trn_seq = hawk_pkg::phy_trn_seq_c::type_id::create("rx_trn_seq");
-      tx_trn_seq = hawk_pkg::phy_trn_seq_c::type_id::create("rx_trn_seq");
-      fork
-         rx_trn_seq.start(hawk_env.rx_agent.phy_csqr);
-         tx_trn_seq.start(hawk_env.tx_agent.phy_csqr);
-      join
-   endtask : run_phase
-
 endclass : basic_test_c
 
 `endif // __BASIC_SV__

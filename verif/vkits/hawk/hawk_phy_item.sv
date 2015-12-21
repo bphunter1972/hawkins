@@ -31,6 +31,10 @@ class phy_item_c extends uvm_sequence_item;
    //----------------------------------------------------------------------------------------
    // Group: Fields
 
+   // var: uid
+   // Unique Identifier
+   cmn_pkg::uid_c uid;
+
    // var: valid
    // Valid signal
    rand bit valid;
@@ -48,17 +52,19 @@ class phy_item_c extends uvm_sequence_item;
    // Group: Methods
    function new(string name="phy");
       super.new(name);
+      uid = new("PHY");
    endfunction : new
 
    ////////////////////////////////////////////
    // func: convert2string
    // Single-line printing
    virtual function string convert2string();
+      convert2string = uid.convert2string();
       if(valid)
-         convert2string = $sformatf("PKT D:%02X", data);
+         convert2string = $sformatf("%s PKT D:%02X", convert2string, data);
       else if(data inside {ACK, NAK, TRN, EOP}) begin
          phy_char_e pchar = phy_char_e'(data);
-         convert2string = pchar.name();
+         convert2string = {convert2string, " ", pchar.name()};
       end else
          convert2string = "IDLE";
    endfunction : convert2string

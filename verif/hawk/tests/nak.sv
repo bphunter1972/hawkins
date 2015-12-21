@@ -32,7 +32,7 @@ class nak_test_c extends basic_test_c;
    // constraint: nak_pct_cnstr
    // Permit nak to be 2-3%
    constraint nak_pct_cnstr {
-      cfg.nak_pct == inside {2, 3};
+      cfg.nak_pct inside {2, 3};
    }
 
    //----------------------------------------------------------------------------------------

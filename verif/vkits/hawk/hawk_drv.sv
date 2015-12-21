@@ -68,12 +68,16 @@ class drv_c extends uvm_driver#(phy_item_c);
    ////////////////////////////////////////////
    // func: run_phase
    virtual task run_phase(uvm_phase phase);
+      // get the seed item
       do begin
          seq_item_port.get_next_item(seed_item);
          seq_item_port.item_done();
       end while(seed_item.seed_item == 0);
 
       forever begin
+         // wait first for reset to go high
+         @(posedge vi.drv_cb.rst_n);
+
          // put interface in "reset"
          vi.drv_cb.valid <= 1'b0;
          vi.drv_cb.data <= 'h0;
@@ -84,7 +88,6 @@ class drv_c extends uvm_driver#(phy_item_c);
 
          @(negedge vi.drv_cb.rst_n);
          disable fork;
-         @(posedge vi.drv_cb.rst_n);
       end
    endtask : run_phase
 
@@ -92,13 +95,15 @@ class drv_c extends uvm_driver#(phy_item_c);
    // func: driver
    // Drive stuff
    virtual task driver();
+      // ensure that we start on a clock edge
+      @(vi.drv_cb);
       forever begin
          seq_item_port.try_next_item(req);
          if(!req) begin
-            // technically, this should never happen
             vi.drv_cb.valid <= 1'b0;
             vi.drv_cb.data <= 'h0;
             seq_item_port.get_next_item(req);
+            @(vi.drv_cb);
          end
 
          `cmn_dbg(300, ("Driving %s", req.convert2string()))

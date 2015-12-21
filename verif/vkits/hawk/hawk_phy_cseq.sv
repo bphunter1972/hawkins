@@ -62,19 +62,23 @@ class phy_cseq_c extends uvm_sequence#(phy_item_c);
             link_item.pack_bytes(stream);
             foreach(stream[idx]) begin
                `uvm_create(phy_item)
+               phy_item.uid = link_item.uid.new_subid("PHY");
                phy_item.valid = 1;
                phy_item.data = stream[idx];
                `uvm_send_pri(phy_item, PKT_PRI)
                `cmn_dbg(200, ("TX to   DRV: %s", phy_item.convert2string()))
             end
             `uvm_create(phy_item)
+            phy_item.uid = link_item.uid.new_subid("PHY");
             phy_item.valid = 0;
             phy_item.data = EOP;
             `uvm_send_pri(phy_item, PKT_PRI)
          end else begin
             // otherwise send the PHY character (ACK or NAK)
             phy_item_c phy_item;
-            `uvm_do_pri_with(phy_item, ACK_NAK_PRI, {
+            `uvm_create(phy_item)
+            phy_item.uid = link_item.uid.new_subid("PHY");
+            `uvm_rand_send_pri_with(phy_item, ACK_NAK_PRI, {
                valid == link_item.phy_char[8];
                data == link_item.phy_char[7:0];
             })
