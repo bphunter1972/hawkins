@@ -3,7 +3,7 @@
 // File:   base_test.sv
 // Author: bhunter
 /* About:  Base test for hawkins testbench.
-   Copyright (C) 2015  Brian P. Hunter
+   Copyright (C) 2015-2016  Brian P. Hunter
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -102,21 +102,6 @@ class base_test_c extends uvm_test;
    virtual function void connect_phase(uvm_phase phase);
       super.connect_phase(phase);
    endfunction : connect_phase
-
-   ////////////////////////////////////////////
-   // func: run_phase
-   // Launch training sequence on PHY csqr of RX & TX agents
-   virtual task run_phase(uvm_phase phase);
-      hawk_pkg::phy_trn_seq_c rx_trn_seq, tx_trn_seq;
-      super.run_phase(phase);
-
-      rx_trn_seq = hawk_pkg::phy_trn_seq_c::type_id::create("rx_trn_seq");
-      tx_trn_seq = hawk_pkg::phy_trn_seq_c::type_id::create("tx_trn_seq");
-      fork
-         rx_trn_seq.start(hawk_env.rx_agent.phy_csqr);
-         tx_trn_seq.start(hawk_env.tx_agent.phy_csqr);
-      join
-   endtask : run_phase
 
    ////////////////////////////////////////////
    // func: randomize_cfg

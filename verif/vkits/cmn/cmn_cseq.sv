@@ -3,7 +3,7 @@
 // File:   cmn_cseq.sv
 // Author: bhunter
 /* About:  Chaining Sequence Base Class
-   Copyright (C) 2015  Brian P. Hunter
+   Copyright (C) 2015-2016  Brian P. Hunter
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -75,7 +75,8 @@ class cseq_c#(type DOWN_REQ=uvm_sequence_item,
       forever begin
          get_response(down_rsp_item);
          up_rsp_item = create_up_rsp(down_rsp_item);
-         p_sequencer.put_up_response(up_rsp_item);
+         if(up_rsp_item)
+            p_sequencer.put_up_response(up_rsp_item);
       end
    endtask : handle_down_rsp
 
@@ -88,7 +89,7 @@ class cseq_c#(type DOWN_REQ=uvm_sequence_item,
 
    ////////////////////////////////////////////
    // func: create_up_rsp
-   // Create an upstream response item from the downstream request
+   // Create an upstream response item from the downstream response
    virtual function UP_RSP create_up_rsp(ref DOWN_RSP _down_rsp_item);
    endfunction : create_up_rsp
 

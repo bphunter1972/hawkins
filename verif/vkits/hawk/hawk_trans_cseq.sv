@@ -3,7 +3,7 @@
 // File:   hawk_trans_cseq.sv
 // Author: bhunter
 /* About:  Chaining sequence for Transaction level.
-   Copyright (C) 2015  Brian P. Hunter
+   Copyright (C) 2015-2016  Brian P. Hunter
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,7 +27,9 @@ typedef class trans_csqr_c;
 
 // class: trans_cseq_c
 // Sends transaction items to the link layer. Also receives inbound transaction items as responses
-class trans_cseq_c extends uvm_sequence#(trans_item_c);
+class trans_cseq_c extends cmn_pkg::cseq_c#(trans_item_c, trans_item_c,
+                                            os_item_c, os_item_c,
+                                            trans_csqr_c);
    `uvm_object_utils(hawk_pkg::trans_cseq_c)
    `uvm_declare_p_sequencer(trans_csqr_c)
 
@@ -59,17 +61,12 @@ class trans_cseq_c extends uvm_sequence#(trans_item_c);
 
    ////////////////////////////////////////////
    // func: body
-   virtual task body();
-      fork
-         handle_trans_items();
-         handle_rsp();
-      join
-   endtask : body
+   // Prototype is what we want, no reason to override
 
    ////////////////////////////////////////////
-   // func: handle_trans_items
-   // Retrieve transical-level items from upstream and send them along
-   virtual task handle_trans_items();
+   // func: handle_up_items
+   // Retrieve transaction-level items from upstream and send them along
+   virtual task handle_up_items();
       trans_item_c trans_item;
       os_item_c os_item;
 
@@ -78,6 +75,8 @@ class trans_cseq_c extends uvm_sequence#(trans_item_c);
          `cmn_dbg(200, ("RX from OS : %s", os_item.convert2string()))
          case(os_item.access)
             UVM_READ: begin
+               // for reads, we must first get a free tag before the read can be done
+               // once sent, we need to keep it as an outstanding read to be retired later
                tag_t read_tag;
                get_a_free_tag(read_tag);
                `uvm_create(trans_item)
@@ -91,6 +90,8 @@ class trans_cseq_c extends uvm_sequence#(trans_item_c);
                outstanding_reads[read_tag] = os_item;
             end
             UVM_WRITE: begin
+               // writes can just be done straightaway. Just give the trans-item
+               // it's own unique sub-id
                `uvm_create(trans_item)
                trans_item.uid = os_item.uid.new_subid("TRN");
                `uvm_rand_send_with(trans_item, {
@@ -102,12 +103,15 @@ class trans_cseq_c extends uvm_sequence#(trans_item_c);
             end
          endcase
       end
-   endtask : handle_trans_items
+   endtask : handle_up_items
 
    ////////////////////////////////////////////
-   // func: handle_rsp
-   // Sends read responses back upstream
-   virtual task handle_rsp();
+   // func: handle_down_rsp
+   // Because send_read_response is a task, we cannot simply use create_up_rsp
+   // and must instead override handle_down_rsp
+   // This function handles all of the reads and writes, and only sends UP the responses
+   // to reads from the OS level
+   virtual task handle_down_rsp();
       forever begin
          get_response(rsp); // rsp is a trans_item_c
          `cmn_dbg(200, ("RX from LNK: %s", rsp.convert2string()))
@@ -130,7 +134,7 @@ class trans_cseq_c extends uvm_sequence#(trans_item_c);
             end
          endcase
       end
-   endtask : handle_rsp
+   endtask : handle_down_rsp
 
    ////////////////////////////////////////////
    // func: get_a_free_tag

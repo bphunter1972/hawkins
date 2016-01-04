@@ -3,7 +3,7 @@
 // File:   cmn_macros.sv
 // Author: bhunter
 /* About:  Common Macros
-   Copyright (C) 2015  Brian P. Hunter
+   Copyright (C) 2015-2016  Brian P. Hunter
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by

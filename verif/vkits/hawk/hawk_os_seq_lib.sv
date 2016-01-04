@@ -7,7 +7,7 @@
            addresses, writes to them, and then performs 100 random reads,
            expecting each to match the expected results that were written
            before.
-   Copyright (C) 2015  Brian P. Hunter
+   Copyright (C) 2015-2016  Brian P. Hunter
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by

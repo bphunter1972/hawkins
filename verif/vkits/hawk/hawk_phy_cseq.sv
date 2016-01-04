@@ -3,7 +3,7 @@
 // File:   hawk_phy_cseq.sv
 // Author: bhunter
 /* About:  Chaining sequence receives link items and transmits phy items
-   Copyright (C) 2015  Brian P. Hunter
+   Copyright (C) 2015-2016  Brian P. Hunter
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,9 +25,10 @@
 typedef class phy_csqr_c;
 
 // class: phy_cseq_c
-class phy_cseq_c extends uvm_sequence#(phy_item_c);
+class phy_cseq_c extends cmn_pkg::cseq_c#(phy_item_c, phy_item_c,
+                                          link_item_c, link_item_c,
+                                          phy_csqr_c);
    `uvm_object_utils(hawk_pkg::phy_cseq_c)
-   `uvm_declare_p_sequencer(phy_csqr_c)
 
    //----------------------------------------------------------------------------------------
    // Group: Methods
@@ -39,16 +40,18 @@ class phy_cseq_c extends uvm_sequence#(phy_item_c);
    // func: body
    virtual task body();
       fork
-         send_link_items();
+         handle_up_items();
          send_idles();
-         handle_rsp();
+         handle_down_rsp();
       join
    endtask : body
 
    ////////////////////////////////////////////
-   // func: send_link_items
+   // func: handle_up_items
    // Send the link items coming from upstream
-   virtual task send_link_items();
+   // Because each link item converts to more than 1 phy item,
+   // we cannot simply override make_down_req
+   virtual task handle_up_items();
       link_item_c link_item;
       phy_item_c phy_item;
 
@@ -85,7 +88,7 @@ class phy_cseq_c extends uvm_sequence#(phy_item_c);
             `cmn_dbg(200, ("TX to   DRV: %s", phy_item.convert2string()))
          end
       end
-   endtask : send_link_items
+   endtask : handle_up_items
 
    ////////////////////////////////////////////
    // func: send_idles
@@ -107,10 +110,10 @@ class phy_cseq_c extends uvm_sequence#(phy_item_c);
    endtask : send_idles
 
    ////////////////////////////////////////////
-   // func: handle_rsp
+   // func: handle_down_rsp
    // Pull phy_item responses from sequencer. Filter out idles and training.
    // from the rest, pack up as link_items and send as upstream responses
-   virtual task handle_rsp();
+   virtual task handle_down_rsp();
       link_item_c up_rsp;
       phy_item_c pkt_items[$];
       phy_item_c seed_item;
@@ -141,7 +144,7 @@ class phy_cseq_c extends uvm_sequence#(phy_item_c);
             p_sequencer.put_up_response(up_rsp);
          end
       end
-   endtask : handle_rsp
+   endtask : handle_down_rsp
 
    ////////////////////////////////////////////
    // func: make_link_item

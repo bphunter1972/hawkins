@@ -3,7 +3,7 @@
 // File:   hawk_link_cseq.sv
 // Author: bhunter
 /* About:  Chaining sequence for Link-level
-   Copyright (C) 2015  Brian P. Hunter
+   Copyright (C) 2015-2016  Brian P. Hunter
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -43,12 +43,12 @@ class link_cseq_c extends cmn_pkg::cseq_c#(link_item_c, link_item_c,
    // var: replay_buffer
    // All of the link items that have been sent go here until either acknowledged or NAK is
    // received
-   DOWN_REQ replay_buffer[$];
+   link_item_c replay_buffer[$];
 
    // var: ack_buffer
    // Incoming link-level items that must be either ACKed or NAKed
    // after ACK, send as upstream response
-   DOWN_REQ ack_buffer[$];
+   link_item_c ack_buffer[$];
 
    // var: acks_to_send
    // Each bit will send an acknowledge. If the bit is 1, then send a NAK
@@ -87,7 +87,7 @@ class link_cseq_c extends cmn_pkg::cseq_c#(link_item_c, link_item_c,
    // sending them on as link-level items
    virtual task handle_up_items();
       UP_REQ trans_item;
-      DOWN_REQ link_item;
+      link_item_c link_item;
       forever begin
          p_sequencer.get_up_item(trans_item);
          `cmn_dbg(200, ("RX from TRN: %s", trans_item.convert2string()))
@@ -113,7 +113,7 @@ class link_cseq_c extends cmn_pkg::cseq_c#(link_item_c, link_item_c,
    // the replay buffer and are thrown away. All NAKs are replayed.
    // All incoming packets are pushed as upstream responses
    virtual task handle_down_rsp();
-      DOWN_REQ replay;
+      link_item_c replay;
 
       forever begin
          get_response(rsp);
@@ -142,7 +142,7 @@ class link_cseq_c extends cmn_pkg::cseq_c#(link_item_c, link_item_c,
    // Fetch acks to be sent from the acks_to_send mailbox and send them
    virtual task send_ack_nak();
       bit send_nak;
-      DOWN_REQ ack_item;
+      link_item_c ack_item;
       phy_char_e phy_char;
       forever begin
          acks_to_send.get(send_nak);
@@ -159,7 +159,7 @@ class link_cseq_c extends cmn_pkg::cseq_c#(link_item_c, link_item_c,
    // func: retry_item
    // Pulls from the replay buffer and re-sends a packet
    virtual task retry_item();
-      DOWN_REQ replay;
+      link_item_c replay;
 
       replay = replay_buffer.pop_front();
       if(replay == null)
