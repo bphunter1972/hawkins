@@ -72,7 +72,6 @@ class link_cseq_c extends cmn_pkg::cseq_c#(link_item_c, link_item_c,
       cfg = p_sequencer.cfg;
       assert(cfg) else
          `cmn_fatal(("Eek! There is no cfg"))
-      p_sequencer.down_id_info = this;
 
       // fork off all of these threads
       fork

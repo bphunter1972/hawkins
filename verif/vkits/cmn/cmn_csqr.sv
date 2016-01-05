@@ -58,14 +58,15 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_RSP=UP_REQ,
    // Triggered when the mailbox is pulled from
    event up_item_pulled;
 
-   // var: up_id_info
+   // var: upstream_cseq
    // The first sequence item from the upstream chaining sequence. All response items
    // are set to it
-   UP_REQ up_id_info;
+   uvm_sequence_base upstream_cseq;
 
-   // var: down_id_info
-   // downstream responses return with this sequence id info
-   uvm_sequence#(DOWN_REQ, DOWN_RSP) down_id_info;
+   // var: cseq
+   // The attached chaining sequence. This will be where downstream responses
+   // go when the driver has been disabled.
+   uvm_sequence_base cseq;
 
    //----------------------------------------------------------------------------------------
    // Group: Methods
@@ -101,8 +102,8 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_RSP=UP_REQ,
    virtual task fetcher();
       UP_REQ item;
       seq_item_port.get_next_item(item);
-      up_id_info = item;
-      `cmn_info(("Fetched up_id_info: %0d/%s:\n%s", up_id_info.get_sequence_id(), up_id_info.get_full_name(), up_id_info.convert2string()))
+      upstream_cseq = item.get_parent_sequence();
+      `cmn_info(("Fetched upstream_cseq: %0d/%s:\n%s", upstream_cseq.get_sequence_id(), upstream_cseq.get_full_name(), upstream_cseq.convert2string()))
 
       forever begin
          up_item_mbox.put(item);
@@ -123,14 +124,14 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_RSP=UP_REQ,
 
       forever begin
          down_seq_item_port.get_next_item(down_item);
-         down_seq_item_port.item_done();
          `cmn_info(("Saw down_item: %s", down_item.convert2string()))
-         assert(down_id_info) else
-            `cmn_fatal(("Eek! There is no down_id_info"))
-         down_item.set_id_info(up_id_info);
+         assert(cseq) else
+            `cmn_fatal(("Eek! There is no cseq"))
+         down_item.set_id_info(cseq);
          `cmn_info(("Putting downstream response: %s to %0d/%s", down_item.convert2string(),
-            up_id_info.get_transaction_id(), up_id_info.get_full_name()))
+            cseq.get_transaction_id(), cseq.get_full_name()))
          put_response(down_item);
+         down_seq_item_port.item_done();
       end
    endtask : downstream_driver
 
@@ -160,14 +161,14 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_RSP=UP_REQ,
    // instead
    virtual function void put_up_response(UP_RSP _up_rsp);
       if(_up_rsp.get_transaction_id() == -1) begin
-         if(up_id_info) begin
-            _up_rsp.set_id_info(up_id_info);
+         if(upstream_cseq) begin
+            _up_rsp.set_id_info(upstream_cseq);
          end else begin
             `cmn_err(("A response is pending before upstream ID information was found."))
             return;
          end
       end
-      `cmn_info(("Putting upstream response: %s to %0d/%s", _up_rsp.convert2string(), up_id_info.get_transaction_id(), up_id_info.get_full_name()))
+      `cmn_info(("Putting upstream response: %s to %0d/%s:\n%s", _up_rsp.convert2string(), upstream_cseq.get_transaction_id(), upstream_cseq.get_full_name(), upstream_cseq.convert2string()))
       seq_item_port.put_response(_up_rsp);
    endfunction : put_up_response
 endclass : csqr_c

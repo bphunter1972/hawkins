@@ -42,9 +42,15 @@ class cseq_c#(type DOWN_REQ=uvm_sequence_item,
    endfunction : new
 
    ////////////////////////////////////////////
+   // func: pre_body
+   // Assign csqr.cseq to me
+   virtual task pre_body();
+      $cast(p_sequencer.cseq, this);
+   endtask : pre_body
+
+   ////////////////////////////////////////////
    // func: body
    virtual task body();
-      $cast(p_sequencer.down_id_info, this);
       fork
          handle_up_items();
          handle_down_rsp();
