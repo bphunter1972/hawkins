@@ -44,6 +44,7 @@ class cseq_c#(type DOWN_REQ=uvm_sequence_item,
    ////////////////////////////////////////////
    // func: body
    virtual task body();
+      $cast(p_sequencer.down_id_info, this);
       fork
          handle_up_items();
          handle_down_rsp();

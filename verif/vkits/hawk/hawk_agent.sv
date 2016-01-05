@@ -27,7 +27,15 @@
 class agent_c extends uvm_agent;
    `uvm_component_utils_begin(hawk_pkg::agent_c)
       `uvm_field_enum(uvm_active_passive_enum, is_active, UVM_ALL_ON)
+      `uvm_field_int(phy_enable, UVM_DEFAULT)
    `uvm_component_utils_end
+
+   //----------------------------------------------------------------------------------------
+   // Group: Configuration Fields
+
+   // var: phy_enable
+   // When set, the PHY CSQR will be connected, and the driver and monitor will also be created
+   bit phy_enable = 1;
 
    //----------------------------------------------------------------------------------------
    // Group: TLM Ports
@@ -60,7 +68,7 @@ class agent_c extends uvm_agent;
    link_csqr_c link_csqr;
 
    // var: trans_csqr
-   // Chained sequencer for the log layer
+   // Chained sequencer for the transaction layer
    trans_csqr_c trans_csqr;
 
    // var: os_sqr
@@ -79,29 +87,42 @@ class agent_c extends uvm_agent;
    virtual function void build_phase(uvm_phase phase);
       super.build_phase(phase);
 
-      mon_item_port = new("mon_item_port", this);
-      inb_item_export = new("inb_item_export", this);
+      if(phy_enable) begin
+         mon_item_port = new("mon_item_port", this);
+         inb_item_export = new("inb_item_export", this);
+         mon = mon_c::type_id::create("mon", this);
+      end else
+         uvm_config_db#(int)::set(this, "link_csqr", "drv_disabled", 1);
+
       if(is_active) begin
-         drv = drv_c::type_id::create("drv", this);
-         phy_csqr = phy_csqr_c::type_id::create("phy_csqr", this);
+         if(phy_enable) begin
+            drv = drv_c::type_id::create("drv", this);
+            phy_csqr = phy_csqr_c::type_id::create("phy_csqr", this);
+         end
+
          link_csqr = link_csqr_c::type_id::create("link_csqr", this);
          trans_csqr = trans_csqr_c::type_id::create("trans_csqr", this);
          os_sqr = os_sqr_c::type_id::create("os_sqr", this);
       end
-      mon = mon_c::type_id::create("mon", this);
    endfunction : build_phase
 
    ////////////////////////////////////////////
    // func: connect_phase
    virtual function void connect_phase(uvm_phase phase);
       super.connect_phase(phase);
-      mon.phy_item_port.connect(mon_item_port);
+      if(mon && mon_item_port)
+         mon.phy_item_port.connect(mon_item_port);
       if(is_active) begin
-         inb_item_export.connect(drv.inb_item_imp);
-         drv.seq_item_port.connect(phy_csqr.seq_item_export);
-         phy_csqr.seq_item_port.connect(link_csqr.seq_item_export);
-         link_csqr.seq_item_port.connect(trans_csqr.seq_item_export);
-         trans_csqr.seq_item_port.connect(os_sqr.seq_item_export);
+         if(inb_item_export && drv)
+            inb_item_export.connect(drv.inb_item_imp);
+         if(drv && phy_csqr)
+            drv.seq_item_port.connect(phy_csqr.seq_item_export);
+         if(phy_csqr && link_csqr)
+            phy_csqr.seq_item_port.connect(link_csqr.seq_item_export);
+         if(link_csqr && trans_csqr)
+            link_csqr.seq_item_port.connect(trans_csqr.seq_item_export);
+         if(trans_csqr && os_sqr)
+            trans_csqr.seq_item_port.connect(os_sqr.seq_item_export);
       end
    endfunction : connect_phase
 endclass : agent_c
