@@ -160,7 +160,8 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_RSP=UP_REQ,
    // for this response, then the first request received will be used
    // instead
    virtual function void put_up_response(UP_RSP _up_rsp);
-      if(_up_rsp.get_transaction_id() == -1) begin
+      `cmn_info(("Putting upstream response with trans_id=%0d", _up_rsp.get_transaction_id()))
+      if(_up_rsp.get_transaction_id() == -1 || drv_disabled) begin
          if(upstream_cseq) begin
             _up_rsp.set_id_info(upstream_cseq);
          end else begin
