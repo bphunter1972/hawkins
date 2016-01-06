@@ -66,10 +66,10 @@ class env_c extends uvm_env;
       if(tx_agent.mon_item_port && rx_agent.inb_item_export)
          tx_agent.mon_item_port.connect(rx_agent.inb_item_export);
 
-      if(!rx_agent.phy_enable && !tx_agent.phy_enable) begin
-         rx_agent.link_csqr.down_seq_item_port.connect(tx_agent.link_csqr.seq_item_export);
-         tx_agent.link_csqr.down_seq_item_port.connect(rx_agent.link_csqr.seq_item_export);
-      end
+      // if(!rx_agent.phy_enable && !tx_agent.phy_enable) begin
+      //    rx_agent.link_csqr.down_seq_item_port.connect(tx_agent.link_csqr.seq_item_export);
+      //    tx_agent.link_csqr.down_seq_item_port.connect(rx_agent.link_csqr.seq_item_export);
+      // end
    endfunction : connect_phase
 endclass : env_c
 

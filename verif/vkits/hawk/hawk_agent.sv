@@ -113,16 +113,14 @@ class agent_c extends uvm_agent;
       if(mon && mon_item_port)
          mon.phy_item_port.connect(mon_item_port);
       if(is_active) begin
-         if(inb_item_export && drv)
-            inb_item_export.connect(drv.inb_item_imp);
-         if(drv && phy_csqr)
-            drv.seq_item_port.connect(phy_csqr.seq_item_export);
-         if(phy_csqr && link_csqr)
-            phy_csqr.seq_item_port.connect(link_csqr.seq_item_export);
-         if(link_csqr && trans_csqr)
-            link_csqr.seq_item_port.connect(trans_csqr.seq_item_export);
-         if(trans_csqr && os_sqr)
-            trans_csqr.seq_item_port.connect(os_sqr.seq_item_export);
+         drv.seq_item_port.connect(phy_csqr.seq_item_export);
+         phy_csqr.up_seq_item_port.connect(link_csqr.seq_item_export);
+         link_csqr.up_seq_item_port.connect(trans_csqr.seq_item_export);
+         trans_csqr.up_seq_item_port.connect(os_sqr.seq_item_export);
+
+         inb_item_export.connect(phy_csqr.down_traffic_export);
+         phy_csqr.up_traffic_port.connect(link_csqr.down_traffic_export);
+         link_csqr.up_traffic_port.connect(trans_csqr.down_traffic_export);
       end
    endfunction : connect_phase
 endclass : agent_c
