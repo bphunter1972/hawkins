@@ -48,6 +48,7 @@ class os_main_seq_c extends uvm_sequence#(os_item_c);
    // func: body
    virtual task body();
       os_item_c item;
+      int rd_idx;
       `cmn_seq_raise
 
       `cmn_info(("Sending in writes..."))
@@ -63,15 +64,15 @@ class os_main_seq_c extends uvm_sequence#(os_item_c);
 
       `cmn_info(("Sending in 100 reads..."))
       repeat(100) begin
-         addresses.shuffle();
+         rd_idx = $urandom_range(0, 49);
          `uvm_do_with(item, {
             access == UVM_READ;
-            addr == addresses[0];
+            addr == addresses[rd_idx];
          })
          get_response(rsp);
-         `cmn_dbg(100, ("Received response from ADDR: %016X, DATA: %016X", addresses[0], rsp.data))
-         if(exp_results[addresses[0]] != rsp.data)
-            `cmn_err(("Expected a value of %016X", exp_results[addresses[0]]))
+         `cmn_dbg(100, ("Received response from ADDR: %016X, DATA: %016X", addresses[rd_idx], rsp.data))
+         if(exp_results[addresses[rd_idx]] != rsp.data)
+            `cmn_err(("Expected a value of %016X", exp_results[addresses[rd_idx]]))
       end
 
       `cmn_info(("All traffic completed."))

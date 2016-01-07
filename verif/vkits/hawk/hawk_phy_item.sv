@@ -43,11 +43,6 @@ class phy_item_c extends uvm_sequence_item;
    // Data signal
    rand byte unsigned data;
 
-   // var: seed_item
-   // When set, this bit indicates that the driver should use this
-   // sequence's id info to re-route all responses
-   bit seed_item=0;
-
    //----------------------------------------------------------------------------------------
    // Group: Methods
    function new(string name="phy");

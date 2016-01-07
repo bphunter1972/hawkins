@@ -25,6 +25,7 @@
 class env_c extends uvm_env;
    `uvm_component_utils_begin(hawk_pkg::env_c)
       `uvm_field_object(cfg, UVM_REFERENCE)
+      `uvm_field_int(phy_enable, UVM_DEFAULT)
    `uvm_component_utils_end
 
    //----------------------------------------------------------------------------------------
@@ -33,6 +34,10 @@ class env_c extends uvm_env;
    // var: cfg
    // The hawk cfg knobs class
    cfg_c cfg;
+
+   // var: phy_enable
+   // When set, phy csqr, drivers, and monitors will be present
+   bit phy_enable = 1;
 
    //----------------------------------------------------------------------------------------
    // Group: Fields
@@ -52,9 +57,11 @@ class env_c extends uvm_env;
    // func: build_phase
    virtual function void build_phase(uvm_phase phase);
       super.build_phase(phase);
+      uvm_config_db#(uvm_object)::set(this, "*", "cfg", cfg);
+      uvm_config_db#(int)::set(this, "*", "phy_enable", phy_enable);
+
       tx_agent = hawk_pkg::agent_c::type_id::create("rx_agent", this);
       rx_agent = hawk_pkg::agent_c::type_id::create("tx_agent", this);
-      uvm_config_db#(uvm_object)::set(this, "*", "cfg", cfg);
    endfunction : build_phase
 
    ////////////////////////////////////////////
@@ -66,7 +73,7 @@ class env_c extends uvm_env;
       if(tx_agent.mon_item_port && rx_agent.inb_item_export)
          tx_agent.mon_item_port.connect(rx_agent.inb_item_export);
 
-      if(!rx_agent.phy_enable && !tx_agent.phy_enable) begin
+      if(!phy_enable) begin
          rx_agent.link_csqr.down_seq_item_port.connect(tx_agent.link_csqr.seq_item_export);
          tx_agent.link_csqr.down_seq_item_port.connect(rx_agent.link_csqr.seq_item_export);
       end

@@ -42,7 +42,7 @@ class phy_cseq_c extends cmn_pkg::cseq_c#(phy_item_c, phy_item_c,
       fork
          handle_up_items();
          send_idles();
-         handle_down_rsp();
+         handle_down_traffic();
       join
    endtask : body
 
@@ -110,41 +110,37 @@ class phy_cseq_c extends cmn_pkg::cseq_c#(phy_item_c, phy_item_c,
    endtask : send_idles
 
    ////////////////////////////////////////////
-   // func: handle_down_rsp
-   // Pull phy_item responses from sequencer. Filter out idles and training.
-   // from the rest, pack up as link_items and send as upstream responses
-   virtual task handle_down_rsp();
-      link_item_c up_rsp;
+   // func: handle_down_traffic
+   // Pull phy items from sequencer. Filter out idles and training.
+   // from the rest, pack up as link_items and send as upstream traffic
+   virtual task handle_down_traffic();
+      link_item_c up_item;
       phy_item_c pkt_items[$];
-      phy_item_c seed_item;
-
-      `uvm_create(seed_item)
-      seed_item.seed_item = 1;
-      `uvm_send(seed_item)
+      phy_item_c down_traffic;
 
       forever begin
-         get_response(rsp); // rsp is a phy_item_c
-         `cmn_dbg(200, ("RX from DRV: %s", rsp.convert2string()))
+         p_sequencer.get_down_traffic(down_traffic);
+         `cmn_dbg(200, ("RX from DRV: %s", down_traffic.convert2string()))
 
          // if it's either IDLE or training, then toss it on the floor
-         if(rsp.is_idle_or_trn())
+         if(down_traffic.is_idle_or_trn())
             continue;
 
-         if(rsp.valid == 1)
-            pkt_items.push_back(rsp);
-         else if(rsp.data == EOP) begin
+         if(down_traffic.valid == 1)
+            pkt_items.push_back(down_traffic);
+         else if(down_traffic.data == EOP) begin
             // create a link item out of all the pkt_items in the queue
-            up_rsp = make_link_item(pkt_items);
+            up_item = make_link_item(pkt_items);
             pkt_items.delete();
             // send upstream
-            p_sequencer.put_up_response(up_rsp);
+            p_sequencer.put_up_traffic(up_item);
          end else begin
-            up_rsp = link_item_c::type_id::create("up_rsp");
-            up_rsp.phy_char = {rsp.valid, rsp.data};
-            p_sequencer.put_up_response(up_rsp);
+            up_item = link_item_c::type_id::create("up_item");
+            up_item.phy_char = {down_traffic.valid, down_traffic.data};
+            p_sequencer.put_up_traffic(up_item);
          end
       end
-   endtask : handle_down_rsp
+   endtask : handle_down_traffic
 
    ////////////////////////////////////////////
    // func: make_link_item
