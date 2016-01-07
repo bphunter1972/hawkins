@@ -91,15 +91,14 @@ class agent_c extends uvm_agent;
          mon_item_port = new("mon_item_port", this);
          inb_item_export = new("inb_item_export", this);
          mon = mon_c::type_id::create("mon", this);
+         if(is_active) begin
+            drv = drv_c::type_id::create("drv", this);
+            phy_csqr = phy_csqr_c::type_id::create("phy_csqr", this);
+         end
       end else
          uvm_config_db#(int)::set(this, "link_csqr", "drv_disabled", 1);
 
       if(is_active) begin
-         if(phy_enable) begin
-            drv = drv_c::type_id::create("drv", this);
-            phy_csqr = phy_csqr_c::type_id::create("phy_csqr", this);
-         end
-
          link_csqr = link_csqr_c::type_id::create("link_csqr", this);
          trans_csqr = trans_csqr_c::type_id::create("trans_csqr", this);
          os_sqr = os_sqr_c::type_id::create("os_sqr", this);
@@ -113,13 +112,15 @@ class agent_c extends uvm_agent;
       if(mon && mon_item_port)
          mon.phy_item_port.connect(mon_item_port);
       if(is_active) begin
-         drv.seq_item_port.connect(phy_csqr.seq_item_export);
-         phy_csqr.up_seq_item_port.connect(link_csqr.seq_item_export);
+         if(phy_enable) begin
+            drv.seq_item_port.connect(phy_csqr.seq_item_export);
+            phy_csqr.up_seq_item_port.connect(link_csqr.seq_item_export);
+            phy_csqr.up_traffic_port.connect(link_csqr.down_traffic_export);
+            inb_item_export.connect(phy_csqr.down_traffic_export);
+         end
+
          link_csqr.up_seq_item_port.connect(trans_csqr.seq_item_export);
          trans_csqr.up_seq_item_port.connect(os_sqr.seq_item_export);
-
-         inb_item_export.connect(phy_csqr.down_traffic_export);
-         phy_csqr.up_traffic_port.connect(link_csqr.down_traffic_export);
          link_csqr.up_traffic_port.connect(trans_csqr.down_traffic_export);
       end
    endfunction : connect_phase

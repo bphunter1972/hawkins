@@ -54,6 +54,7 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
 
    // var: down_seq_item_port
    // Pulls downstream items from another chained sequencer just as a driver would
+   // only created when drv_disabled == 1
    uvm_seq_item_pull_port#(DOWN_REQ, DOWN_TRAFFIC) down_seq_item_port;
 
    //----------------------------------------------------------------------------------------
@@ -129,22 +130,20 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
 
    ////////////////////////////////////////////
    // func: downstream_driver
-   // Pulls the requests out of the down_seq_item_port, then receives responses
-   // from another chained sequencer and sends them back up the seq_item_export
+   // Pulls the requests out of the down_seq_item_port as a
+   // driver would. Converts these to downstream traffic and pushes
+   // it into the downstream fifo
    virtual task downstream_driver();
-      // DOWN_REQ down_item;
+      DOWN_REQ down_req;
+      DOWN_TRAFFIC down_traffic;
 
-      // forever begin
-      //    down_seq_item_port.get_next_item(down_item);
-      //    `cmn_info(("Saw down_item: %s", down_item.convert2string()))
-      //    assert(cseq) else
-      //       `cmn_fatal(("Eek! There is no cseq"))
-      //    down_item.set_id_info(cseq);
-      //    `cmn_info(("Putting downstream response: %s to %0d/%s", down_item.convert2string(),
-      //       cseq.get_transaction_id(), cseq.get_full_name()))
-      //    put_response(down_item);
-      //    down_seq_item_port.item_done();
-      // end
+      forever begin
+         down_seq_item_port.get_next_item(down_req);
+         `cmn_info(("Saw down_req: %s", down_req.convert2string()))
+         down_traffic = convert_down_req(down_req);
+         down_traffic_fifo.analysis_export.write(down_traffic);
+         down_seq_item_port.item_done();
+      end
    endtask : downstream_driver
 
    ////////////////////////////////////////////
@@ -153,6 +152,15 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
    virtual task get_down_traffic(ref DOWN_TRAFFIC _down_traffic);
       down_traffic_fifo.get(_down_traffic);
    endtask : get_down_traffic
+
+   ////////////////////////////////////////////
+   // func: convert_down_req
+   // Convert a downstream request to downstream traffic
+   // By default, these are the same and a cast will work. Override
+   // if necessary
+   virtual function DOWN_TRAFFIC convert_down_req(ref DOWN_REQ _down_req);
+      $cast(convert_down_req, _down_req);
+   endfunction : convert_down_req
 
    ////////////////////////////////////////////
    // func: try_get_up_item

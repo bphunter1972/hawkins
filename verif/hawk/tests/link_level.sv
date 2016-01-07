@@ -40,7 +40,7 @@ class link_level_test_c extends basic_test_c;
    // func: build_phase
    // Do not enable the phy level stuff.
    virtual function void build_phase(uvm_phase phase);
-      uvm_config_db#(int)::set(this, "hawk_env.*_agent", "phy_enable", 0);
+      uvm_config_db#(int)::set(this, "hawk_env", "phy_enable", 0);
       super.build_phase(phase);
    endfunction : build_phase
 
