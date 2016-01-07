@@ -71,7 +71,7 @@ class trans_cseq_c extends cmn_pkg::cseq_c#(trans_item_c, trans_item_c,
       os_item_c os_item;
 
       forever begin
-         p_sequencer.get_up_item(os_item);
+         get_next_up_item(os_item);
          `cmn_dbg(200, ("RX from OS : %s", os_item.convert2string()))
          case(os_item.access)
             UVM_READ: begin
@@ -115,7 +115,7 @@ class trans_cseq_c extends cmn_pkg::cseq_c#(trans_item_c, trans_item_c,
       trans_item_c down_traffic;
 
       forever begin
-         p_sequencer.get_down_traffic(down_traffic);
+         get_down_traffic(down_traffic);
          `cmn_dbg(200, ("RX from LNK: %s", down_traffic.convert2string()))
 
          case(down_traffic.cmd)
@@ -128,7 +128,7 @@ class trans_cseq_c extends cmn_pkg::cseq_c#(trans_item_c, trans_item_c,
                if(outstanding_reads.exists(down_traffic.tag)) begin
                   os_item_c outstanding_read = outstanding_reads[down_traffic.tag];
                   outstanding_read.data = down_traffic.data;
-                  p_sequencer.put_up_response(outstanding_read);
+                  put_up_response(outstanding_read);
                   outstanding_reads.delete(down_traffic.tag);
                   free_a_tag(down_traffic.tag);
                end else

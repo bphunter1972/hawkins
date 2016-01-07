@@ -58,7 +58,7 @@ class cseq_c#(type DOWN_REQ=uvm_sequence_item,
       DOWN_REQ down_req_item;
 
       forever begin
-         p_sequencer.get_up_item(up_req_item);
+         get_next_up_item(up_req_item);
          `uvm_create(down_req_item)
          make_down_req(down_req_item, up_req_item);
          `uvm_send(down_req_item)
@@ -73,12 +73,55 @@ class cseq_c#(type DOWN_REQ=uvm_sequence_item,
       UP_TRAFFIC up_traffic;
 
       forever begin
-         p_sequencer.get_down_traffic(down_traffic);
+         get_down_traffic(down_traffic);
          up_traffic = create_up_traffic(down_traffic);
          if(up_traffic)
-            p_sequencer.put_up_traffic(up_traffic);
+            put_up_traffic(up_traffic);
       end
    endtask : handle_down_traffic
+
+   ////////////////////////////////////////////
+   // func: get_next_up_item
+   // Get the next upstream item request
+   virtual task get_next_up_item(ref UP_REQ _item);
+      p_sequencer.up_seq_item_fifo.get(_item);
+   endtask : get_next_up_item
+
+   ////////////////////////////////////////////
+   // func: try_get_next_up_item
+   // Returns a 1 if an upstream item was available, otherwise returns 0
+   virtual function bit try_get_next_up_item(ref UP_REQ _item);
+      try_get_next_up_item = p_sequencer.up_seq_item_fifo.try_get(_item);
+   endfunction : try_get_next_up_item
+
+   ////////////////////////////////////////////
+   // func: put_up_traffic
+   // Send traffic upstream.
+   virtual function void put_up_traffic(UP_TRAFFIC _up_traffic);
+      p_sequencer.up_traffic_port.write(_up_traffic);
+   endfunction : put_up_traffic
+
+   ////////////////////////////////////////////
+   // func: put_up_response
+   // Send a response upstream using the sequence item port
+   virtual function void put_up_response(UP_TRAFFIC _up_traffic);
+      p_sequencer.up_seq_item_port.put_response(_up_traffic);
+   endfunction : put_up_response
+
+   ////////////////////////////////////////////
+   // func: try_get_down_traffic
+   // Returns a 1 if any downstream traffic item was available, otherwise returns 0
+   // Fills in the _traffic
+   virtual function bit try_get_down_traffic(ref DOWN_TRAFFIC _traffic);
+      return p_sequencer.down_traffic_fifo.try_get(_traffic);
+   endfunction : try_get_down_traffic
+
+   ////////////////////////////////////////////
+   // func: get_down_traffic
+   // Return the next available piece of traffic from downstream
+   virtual task get_down_traffic(ref DOWN_TRAFFIC _down_traffic);
+      p_sequencer.down_traffic_fifo.get(_down_traffic);
+   endtask : get_down_traffic
 
    ////////////////////////////////////////////
    // func: make_down_req

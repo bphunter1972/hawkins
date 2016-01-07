@@ -89,7 +89,7 @@ class link_cseq_c extends cmn_pkg::cseq_c#(link_item_c, link_item_c,
       UP_REQ trans_item;
       link_item_c link_item;
       forever begin
-         p_sequencer.get_up_item(trans_item);
+         get_next_up_item(trans_item);
          `cmn_dbg(200, ("RX from TRN: %s", trans_item.convert2string()))
          `uvm_create(link_item)
          link_item.trans_item = trans_item;
@@ -117,7 +117,7 @@ class link_cseq_c extends cmn_pkg::cseq_c#(link_item_c, link_item_c,
       link_item_c down_traffic;
 
       forever begin
-         p_sequencer.get_down_traffic(down_traffic);
+         get_down_traffic(down_traffic);
          `cmn_dbg(200, ("RX from PHY: %s", down_traffic.convert2string()))
          case(down_traffic.phy_char)
             ACK: begin
@@ -130,7 +130,7 @@ class link_cseq_c extends cmn_pkg::cseq_c#(link_item_c, link_item_c,
                std::randomize(send_nak) with {send_nak dist {1 := cfg.nak_pct, 0 := (100-cfg.nak_pct)}; };
                acks_to_send.put(send_nak);
                if(!send_nak)
-                  p_sequencer.put_up_traffic(down_traffic.trans_item);
+                  put_up_traffic(down_traffic.trans_item);
             end
             default:
                `cmn_err(("Link-layer must never see these: %s", down_traffic.convert2string()))

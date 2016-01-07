@@ -27,10 +27,15 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
               extends uvm_sequencer#(DOWN_REQ);
    `uvm_component_utils_begin(cmn_pkg::csqr_c)
       `uvm_field_int(drv_disabled, UVM_DEFAULT)
+      `uvm_field_enum(uvm_sequencer_arb_mode, sqr_arb_mode, UVM_DEFAULT)
    `uvm_component_utils_end
 
    //----------------------------------------------------------------------------------------
    // Group: Configuration Fields
+
+   // var: sqr_arb_mode
+   // The sequencer arbitration mode
+   uvm_sequencer_arb_mode sqr_arb_mode = UVM_SEQ_ARB_STRICT_FIFO;
 
    // var: drv_disabled
    // When set, the down_seq_item_port is created and takes the place of another chained
@@ -59,13 +64,9 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
 
    //----------------------------------------------------------------------------------------
    // Group: Fields
-   // var: up_item_mbox
-   // A mailbox that contains the next upstream items
-   mailbox#(UP_REQ) up_item_mbox;
-
-   // var: up_item_pulled
-   // Triggered when the mailbox is pulled from
-   event up_item_pulled;
+   // var: up_seq_item_fifo
+   // Receives upstream sequence items
+   uvm_tlm_analysis_fifo#(UP_REQ) up_seq_item_fifo;
 
    // var: down_traffic_fifo
    // Receives the traffic from the downstream sequencer
@@ -87,9 +88,9 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
       down_traffic_export = new("down_traffic_export", this);
       down_traffic_fifo = new("down_traffic_fifo", this);
 
-      up_item_mbox = new();
       up_seq_item_port = new("up_seq_item_port", this);
-      set_arbitration(UVM_SEQ_ARB_STRICT_FIFO);
+      up_seq_item_fifo = new("up_seq_item_fifo", this);
+      set_arbitration(sqr_arb_mode);
       if(drv_disabled)
          down_seq_item_port = new("down_seq_item_port", this);
    endfunction : build_phase
@@ -106,7 +107,6 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
    // func: run_phase
    virtual task run_phase(uvm_phase phase);
       fork
-         super.run_phase(phase);
          up_fetcher();
          if(drv_disabled)
             downstream_driver();
@@ -115,15 +115,15 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
 
    ////////////////////////////////////////////
    // func: up_fetcher
+   // continuously get the next item from upstream and write it
+   // into the up_seq_item_fifo. Then tell the upstream sequencer that
+   // the item is done.
    virtual task up_fetcher();
       UP_REQ item;
 
       forever begin
-         // get the next item
          up_seq_item_port.get_next_item(item);
-
-         up_item_mbox.put(item);
-         @(up_item_pulled);
+         up_seq_item_fifo.analysis_export.write(item);
          up_seq_item_port.item_done();
       end
    endtask : up_fetcher
@@ -147,13 +147,6 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
    endtask : downstream_driver
 
    ////////////////////////////////////////////
-   // func: get_down_traffic
-   // Return the next available piece of traffic from downstream
-   virtual task get_down_traffic(ref DOWN_TRAFFIC _down_traffic);
-      down_traffic_fifo.get(_down_traffic);
-   endtask : get_down_traffic
-
-   ////////////////////////////////////////////
    // func: convert_down_req
    // Convert a downstream request to downstream traffic
    // By default, these are the same and a cast will work. Override
@@ -161,41 +154,6 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
    virtual function DOWN_TRAFFIC convert_down_req(ref DOWN_REQ _down_req);
       $cast(convert_down_req, _down_req);
    endfunction : convert_down_req
-
-   ////////////////////////////////////////////
-   // func: try_get_up_item
-   // Try to return an item in the mailbox
-   virtual function bit try_get_up_item(ref UP_REQ _item);
-      if(up_item_mbox.try_get(_item)) begin
-         ->up_item_pulled;
-         return 1;
-      end else
-         return 0;
-   endfunction : try_get_up_item
-
-   ////////////////////////////////////////////
-   // func: get_up_item
-   // Return the next item in the mailbox or wait
-   virtual task get_up_item(ref UP_REQ _item);
-      up_item_mbox.get(_item);
-      ->up_item_pulled;
-   endtask: get_up_item
-
-   ////////////////////////////////////////////
-   // func: put_up_traffic
-   // Send traffic upstream.
-   virtual function void put_up_traffic(UP_TRAFFIC _up_traffic);
-      `cmn_info(("Putting upstream traffic: %s", _up_traffic.convert2string()))
-      up_traffic_port.write(_up_traffic);
-   endfunction : put_up_traffic
-
-   ////////////////////////////////////////////
-   // func: put_up_response
-   // Send a response upstream using the sequence item port
-   virtual function void put_up_response(UP_TRAFFIC _up_traffic);
-      up_seq_item_port.put_response(_up_traffic);
-   endfunction : put_up_response
-
 endclass : csqr_c
 
 `endif // __CMN_CSQR_SV__

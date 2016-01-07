@@ -57,7 +57,7 @@ class phy_cseq_c extends cmn_pkg::cseq_c#(phy_item_c, phy_item_c,
 
       forever begin
          // fetch the next upstream link packet to send
-         p_sequencer.get_up_item(link_item);
+         get_next_up_item(link_item);
 
          `cmn_dbg(200, ("RX from LNK: %s", link_item.convert2string()))
          if(link_item.phy_char == PKT) begin
@@ -119,7 +119,7 @@ class phy_cseq_c extends cmn_pkg::cseq_c#(phy_item_c, phy_item_c,
       phy_item_c down_traffic;
 
       forever begin
-         p_sequencer.get_down_traffic(down_traffic);
+         get_down_traffic(down_traffic);
          `cmn_dbg(200, ("RX from DRV: %s", down_traffic.convert2string()))
 
          // if it's either IDLE or training, then toss it on the floor
@@ -133,11 +133,11 @@ class phy_cseq_c extends cmn_pkg::cseq_c#(phy_item_c, phy_item_c,
             up_item = make_link_item(pkt_items);
             pkt_items.delete();
             // send upstream
-            p_sequencer.put_up_traffic(up_item);
+            put_up_traffic(up_item);
          end else begin
             up_item = link_item_c::type_id::create("up_item");
             up_item.phy_char = {down_traffic.valid, down_traffic.data};
-            p_sequencer.put_up_traffic(up_item);
+            put_up_traffic(up_item);
          end
       end
    endtask : handle_down_traffic
