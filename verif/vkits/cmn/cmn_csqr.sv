@@ -89,6 +89,7 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
 
       up_item_mbox = new();
       up_seq_item_port = new("up_seq_item_port", this);
+
       set_arbitration(UVM_SEQ_ARB_STRICT_FIFO);
       if(drv_disabled)
          down_seq_item_port = new("down_seq_item_port", this);

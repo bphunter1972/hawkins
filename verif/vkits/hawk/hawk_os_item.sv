@@ -24,6 +24,9 @@
 // class: os_item_c
 class os_item_c extends uvm_sequence_item;
    `uvm_object_utils_begin(hawk_pkg::os_item_c)
+      `uvm_field_enum(trans_cmd_e, cmd, UVM_DEFAULT)
+      `uvm_field_int(addr, UVM_DEFAULT | UVM_HEX)
+      `uvm_field_int(data, UVM_DEFAULT | UVM_HEX)
    `uvm_object_utils_end
 
    //----------------------------------------------------------------------------------------
@@ -33,15 +36,9 @@ class os_item_c extends uvm_sequence_item;
    // Unique ID
    cmn_pkg::uid_c uid;
 
-   // var: access
-   // The command is either a read or a write
-   rand uvm_access_e access;
-
-   // constraint: access_cnstr
-   // Set to read or write. No bursts.
-   constraint access_cnstr {
-      access inside {UVM_READ, UVM_WRITE};
-   }
+   // var: cmd
+   // The command is either a read, write, or response
+   rand trans_cmd_e cmd;
 
    // var: addr
    // The 64-bit address
@@ -62,7 +59,9 @@ class os_item_c extends uvm_sequence_item;
    // func: convert2string
    // Single-line printing
    virtual function string convert2string();
-      convert2string = $sformatf("%s %s ADDR:%016X DATA:%016X", uid.convert2string(), access.name(), addr, data);
+      convert2string = $sformatf("%s %s ADDR:%016X", uid.convert2string(), cmd.name(), addr);
+      if(cmd inside {WR, RESP})
+         convert2string = {convert2string, $sformatf(" DATA:%016X", data)};
    endfunction : convert2string
 
 endclass : os_item_c

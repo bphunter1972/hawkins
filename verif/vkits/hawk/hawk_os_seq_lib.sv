@@ -56,7 +56,7 @@ class os_main_seq_c extends uvm_sequence#(os_item_c);
       // prime the addresses
       foreach(addresses[idx]) begin
          `uvm_do_with(item, {
-            access == UVM_WRITE;
+            cmd == WR;
             addr == addresses[idx];
          })
          exp_results[item.addr] = item.data;
@@ -66,7 +66,7 @@ class os_main_seq_c extends uvm_sequence#(os_item_c);
       repeat(100) begin
          rd_idx = $urandom_range(0, 49);
          `uvm_do_with(item, {
-            access == UVM_READ;
+            cmd == RD;
             addr == addresses[rd_idx];
          })
          get_response(rsp);
