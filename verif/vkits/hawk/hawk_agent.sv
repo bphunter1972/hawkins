@@ -102,7 +102,7 @@ class agent_c extends uvm_agent;
             phy_csqr = phy_csqr_c::type_id::create("phy_csqr", this);
          end
       end else
-         uvm_config_db#(int)::set(this, "link_csqr", "drv_disabled", 1);
+         uvm_config_db#(int)::set(this, "link_csqr", "chain_break", 1);
 
       if(is_active) begin
          link_csqr = link_csqr_c::type_id::create("link_csqr", this);

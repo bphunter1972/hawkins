@@ -26,7 +26,7 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
               DOWN_REQ=uvm_sequence_item, DOWN_TRAFFIC=DOWN_REQ)
               extends uvm_sequencer#(DOWN_REQ);
    `uvm_component_utils_begin(cmn_pkg::csqr_c)
-      `uvm_field_int(drv_disabled, UVM_DEFAULT)
+      `uvm_field_int(chain_break, UVM_DEFAULT)
       `uvm_field_enum(uvm_sequencer_arb_mode, sqr_arb_mode, UVM_DEFAULT)
    `uvm_component_utils_end
 
@@ -37,10 +37,10 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
    // The sequencer arbitration mode
    uvm_sequencer_arb_mode sqr_arb_mode = UVM_SEQ_ARB_STRICT_FIFO;
 
-   // var: drv_disabled
+   // var: chain_break
    // When set, the down_seq_item_port is created and takes the place of another chained
    // sequencer's driver. Downstream requests are then automatically pulled.
-   bit drv_disabled = 0;
+   bit chain_break = 0;
 
    //----------------------------------------------------------------------------------------
    // Group: TLM Ports
@@ -59,7 +59,7 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
 
    // var: down_seq_item_port
    // Pulls downstream items from another chained sequencer just as a driver would
-   // only created when drv_disabled == 1
+   // only created when chain_break == 1
    uvm_seq_item_pull_port#(DOWN_REQ, DOWN_TRAFFIC) down_seq_item_port;
 
    //----------------------------------------------------------------------------------------
@@ -91,7 +91,7 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
       up_seq_item_port = new("up_seq_item_port", this);
       up_seq_item_fifo = new("up_seq_item_fifo", this);
       set_arbitration(sqr_arb_mode);
-      if(drv_disabled)
+      if(chain_break)
          down_seq_item_port = new("down_seq_item_port", this);
    endfunction : build_phase
 
@@ -108,7 +108,7 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
    virtual task run_phase(uvm_phase phase);
       fork
          up_fetcher();
-         if(drv_disabled)
+         if(chain_break)
             downstream_driver();
       join
    endtask : run_phase
@@ -159,7 +159,7 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
    ////////////////////////////////////////////
    // func: down_traffic_user_task
    // Allow the user to handle what happens to downstream traffic before
-   // its item_done is called. This task is only ever called when drv_disabled
+   // its item_done is called. This task is only ever called when chain_break
    // is set.
    virtual task down_traffic_user_task(ref DOWN_TRAFFIC _down_traffic);
    endtask : down_traffic_user_task
