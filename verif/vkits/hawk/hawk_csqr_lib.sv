@@ -1,6 +1,6 @@
 
 // ***********************************************************************
-// File:   hawk_sqr_lib.sv
+// File:   hawk_csqr_lib.sv
 // Author: bhunter
 /* About:  Contains types of chained sequencers used by the hawkins
            package.
@@ -90,20 +90,6 @@ class trans_csqr_c extends cmn_pkg::csqr_c#(os_item_c, os_item_c,
       super.new(name, parent);
    endfunction : new
 endclass : trans_csqr_c
-
-//****************************************************************************************
-// class: os_sqr_c
-// A chaining sequencer that operates at the OS level
-class os_sqr_c extends uvm_sequencer#(os_item_c, os_item_c);
-   `uvm_component_utils(hawk_pkg::os_sqr_c)
-
-   //----------------------------------------------------------------------------------------
-   // Group: Methods
-   function new(string name="os_vsqr",
-                uvm_component parent=null);
-      super.new(name, parent);
-   endfunction : new
-endclass : os_sqr_c
 
 `endif // __HAWK_SQR_LIB_SV__
 

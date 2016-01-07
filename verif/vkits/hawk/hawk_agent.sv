@@ -20,8 +20,10 @@
 
 `include "hawk_drv.sv"
 `include "hawk_mon.sv"
-`include "hawk_sqr_lib.sv"
+`include "hawk_csqr_lib.sv"
+`include "hawk_os_sqr.sv"
 `include "hawk_phy_item.sv"
+`include "hawk_os_item.sv"
 
 // class: agent_c
 class agent_c extends uvm_agent;
@@ -47,6 +49,10 @@ class agent_c extends uvm_agent;
    // var: inb_item_export
    // Items coming INTO this agent from the OTHER monitor come in through here
    uvm_analysis_export #(phy_item_c) inb_item_export;
+
+   // var: rx_os_item_port
+   // All monitored OS items go out here
+   uvm_analysis_port#(os_item_c) rx_os_item_port;
 
    //----------------------------------------------------------------------------------------
    // Group: Fields
@@ -103,6 +109,8 @@ class agent_c extends uvm_agent;
          trans_csqr = trans_csqr_c::type_id::create("trans_csqr", this);
          os_sqr = os_sqr_c::type_id::create("os_sqr", this);
       end
+
+      rx_os_item_port = new("rx_os_item_port", this);
    endfunction : build_phase
 
    ////////////////////////////////////////////
@@ -122,6 +130,9 @@ class agent_c extends uvm_agent;
          link_csqr.up_seq_item_port.connect(trans_csqr.seq_item_export);
          trans_csqr.up_seq_item_port.connect(os_sqr.seq_item_export);
          link_csqr.up_traffic_port.connect(trans_csqr.down_traffic_export);
+
+         trans_csqr.up_traffic_port.connect(rx_os_item_port);
+         trans_csqr.up_traffic_port.connect(os_sqr.rcvd_os_item_export);
       end
    endfunction : connect_phase
 endclass : agent_c

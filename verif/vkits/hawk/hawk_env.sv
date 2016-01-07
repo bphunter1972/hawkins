@@ -44,7 +44,11 @@ class env_c extends uvm_env;
 
    // var: rx_agent, tx_agent
    // The hawk rx_agent & tx_agent
-   hawk_pkg::agent_c rx_agent, tx_agent;
+   agent_c rx_agent, tx_agent;
+
+   // var: rx_mem, tx_mem
+   // Memories for RX and TX
+   mem_c rx_mem, tx_mem;
 
    //----------------------------------------------------------------------------------------
    // Group: Methods
@@ -60,8 +64,14 @@ class env_c extends uvm_env;
       uvm_config_db#(uvm_object)::set(this, "*", "cfg", cfg);
       uvm_config_db#(int)::set(this, "*", "phy_enable", phy_enable);
 
-      tx_agent = hawk_pkg::agent_c::type_id::create("rx_agent", this);
-      rx_agent = hawk_pkg::agent_c::type_id::create("tx_agent", this);
+      tx_agent = agent_c::type_id::create("rx_agent", this);
+      rx_agent = agent_c::type_id::create("tx_agent", this);
+      tx_mem = mem_c::type_id::create("rx_mem", this);
+      rx_mem = mem_c::type_id::create("tx_mem", this);
+
+      // distribute memories to each agent's os sqr
+      uvm_config_db#(uvm_object)::set(this, "rx_agent.os_sqr", "mem", rx_mem);
+      uvm_config_db#(uvm_object)::set(this, "tx_agent.os_sqr", "mem", tx_mem);
    endfunction : build_phase
 
    ////////////////////////////////////////////

@@ -40,9 +40,10 @@ class trans_cseq_c extends cmn_pkg::cseq_c#(trans_item_c, trans_item_c,
    // All of the reads from the OS that are expecting a response, based on tag
    os_item_c outstanding_reads[tag_t];
 
-   // var: memory
-   // The actual memory values of this node. May be written to or read from.
-   data_t memory[addr_t];
+   // var: outstanding_resp_tags
+   // All incoming reads are pushed upstream. When the OS responds, match the address with the outstanding tag
+   // and use that one
+   tag_t outstanding_resp_tags[addr_t];
 
    // var: free_tags
    // A pool of free tags
@@ -73,8 +74,8 @@ class trans_cseq_c extends cmn_pkg::cseq_c#(trans_item_c, trans_item_c,
       forever begin
          get_next_up_item(os_item);
          `cmn_dbg(200, ("RX from OS : %s", os_item.convert2string()))
-         case(os_item.access)
-            UVM_READ: begin
+         case(os_item.cmd)
+            RD: begin
                // for reads, we must first get a free tag before the read can be done
                // once sent, we need to keep it as an outstanding read to be retired later
                tag_t read_tag;
@@ -86,10 +87,9 @@ class trans_cseq_c extends cmn_pkg::cseq_c#(trans_item_c, trans_item_c,
                   cmd == RD;
                   addr == os_item.addr;
                })
-               `cmn_dbg(200, ("TX to   LNK: %s", trans_item.convert2string()))
                outstanding_reads[read_tag] = os_item;
             end
-            UVM_WRITE: begin
+            WR: begin
                // writes can just be done straightaway. Just give the trans-item
                // it's own unique sub-id
                `uvm_create(trans_item)
@@ -99,9 +99,20 @@ class trans_cseq_c extends cmn_pkg::cseq_c#(trans_item_c, trans_item_c,
                   addr == os_item.addr;
                   data == os_item.data;
                })
-               `cmn_dbg(200, ("TX to   LNK: %s", trans_item.convert2string()))
+            end
+            RESP: begin
+               // find the most tag and use that one
+               tag_t my_tag = outstanding_resp_tags[os_item.addr];
+               `uvm_do_with(trans_item, {
+                  cmd == RESP;
+                  addr == os_item.addr;
+                  data == os_item.data;
+                  tag == my_tag;
+               })
+               outstanding_resp_tags.delete(my_tag);
             end
          endcase
+         `cmn_dbg(200, ("TX to   LNK: %s", trans_item.convert2string()))
       end
    endtask : handle_up_items
 
@@ -113,17 +124,13 @@ class trans_cseq_c extends cmn_pkg::cseq_c#(trans_item_c, trans_item_c,
    // to reads from the OS level
    virtual task handle_down_traffic();
       trans_item_c down_traffic;
+      os_item_c os_item;
 
       forever begin
          get_down_traffic(down_traffic);
          `cmn_dbg(200, ("RX from LNK: %s", down_traffic.convert2string()))
 
          case(down_traffic.cmd)
-            WR  : begin
-               memory[down_traffic.addr] = down_traffic.data;
-               `cmn_dbg(200, ("Wrote [%08X] = %016X", down_traffic.addr, down_traffic.data))
-            end
-            RD  : send_read_response(down_traffic);
             RESP: begin
                if(outstanding_reads.exists(down_traffic.tag)) begin
                   os_item_c outstanding_read = outstanding_reads[down_traffic.tag];
@@ -134,7 +141,17 @@ class trans_cseq_c extends cmn_pkg::cseq_c#(trans_item_c, trans_item_c,
                end else
                   `cmn_err(("TAG:%01X Received response with tag that does not match any outstanding reads.", down_traffic.tag))
             end
+            default: begin
+               os_item = os_item_c::type_id::create("os_item");
+               os_item.uid = down_traffic.uid.new_subid("OS");
+               os_item.cmd = down_traffic.cmd;
+               os_item.addr = down_traffic.addr;
+               os_item.data = down_traffic.data;
+               outstanding_resp_tags[down_traffic.addr] = down_traffic.tag;
+               put_up_traffic(os_item);
+            end
          endcase
+
       end
    endtask : handle_down_traffic
 
@@ -154,29 +171,6 @@ class trans_cseq_c extends cmn_pkg::cseq_c#(trans_item_c, trans_item_c,
       free_tags.push_back(_tag);
       `cmn_dbg(300, ("TAG:%01X Freed", _tag))
    endfunction : free_a_tag
-
-   ////////////////////////////////////////////
-   // func: send_read_response
-   // Respond to a read
-   virtual task send_read_response(trans_item_c _read_request);
-      trans_item_c response_item;
-      data_t rsp_data;
-
-      if(!memory.exists(_read_request.addr)) begin
-         memory[_read_request.addr] = 0;
-         `cmn_warn(("Reading from uninitialized memory location [%016X]", _read_request.addr))
-      end
-
-      rsp_data = memory[_read_request.addr];
-
-      `uvm_do_with(response_item, {
-         cmd  == RESP;
-         data == rsp_data;
-         tag  == _read_request.tag;
-      })
-
-      `cmn_dbg(200, ("TX to   LNK: %s", response_item.convert2string()))
-   endtask : send_read_response
 
 endclass : trans_cseq_c
 
