@@ -64,6 +64,16 @@ class link_csqr_c extends cmn_pkg::csqr_c#(trans_item_c, trans_item_c,
                 uvm_component parent=null);
       super.new(name, parent);
    endfunction : new
+
+   ////////////////////////////////////////////
+   // func: down_traffic_user_task
+   // When the PHY level is disabled, a random delay between 5 and 30ns is added to
+   // simulate phy-level activity
+   virtual task down_traffic_user_task(ref DOWN_TRAFFIC _down_traffic);
+      int unsigned delay_ns;
+      std::randomize(delay_ns) with { delay_ns inside {[5:30]}; };
+      #(delay_ns * 1ns);
+   endtask : down_traffic_user_task
 endclass : link_csqr_c
 
 //****************************************************************************************

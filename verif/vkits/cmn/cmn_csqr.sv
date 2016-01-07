@@ -142,6 +142,7 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
          `cmn_info(("Saw down_req: %s", down_req.convert2string()))
          down_traffic = convert_down_req(down_req);
          down_traffic_fifo.analysis_export.write(down_traffic);
+         down_traffic_user_task(down_traffic);
          down_seq_item_port.item_done();
       end
    endtask : downstream_driver
@@ -154,6 +155,15 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
    virtual function DOWN_TRAFFIC convert_down_req(ref DOWN_REQ _down_req);
       $cast(convert_down_req, _down_req);
    endfunction : convert_down_req
+
+   ////////////////////////////////////////////
+   // func: down_traffic_user_task
+   // Allow the user to handle what happens to downstream traffic before
+   // its item_done is called. This task is only ever called when drv_disabled
+   // is set.
+   virtual task down_traffic_user_task(ref DOWN_TRAFFIC _down_traffic);
+   endtask : down_traffic_user_task
+
 endclass : csqr_c
 
 `endif // __CMN_CSQR_SV__
