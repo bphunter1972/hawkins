@@ -76,7 +76,7 @@ class link_cseq_c extends cmn_pkg::cseq_c#(link_item_c, link_item_c,
       // fork off all of these threads
       fork
          handle_up_items();
-         handle_down_rsp();
+         handle_down_traffic();
          send_ack_nak();
       join
    endtask : body
@@ -108,17 +108,18 @@ class link_cseq_c extends cmn_pkg::cseq_c#(link_item_c, link_item_c,
    endtask : handle_up_items
 
    ////////////////////////////////////////////
-   // func: handle_down_rsp
-   // Handle all link-level responses from the PHY level.  All ACKs pull from
+   // func: handle_down_traffic
+   // Handle all link-level traffic from the PHY level.  All ACKs pull from
    // the replay buffer and are thrown away. All NAKs are replayed.
-   // All incoming packets are pushed as upstream responses
-   virtual task handle_down_rsp();
+   // All incoming packets are pushed as upstream traffic
+   virtual task handle_down_traffic();
       link_item_c replay;
+      link_item_c down_traffic;
 
       forever begin
-         get_response(rsp);
-         `cmn_dbg(200, ("RX from PHY: %s", rsp.convert2string()))
-         case(rsp.phy_char)
+         p_sequencer.get_down_traffic(down_traffic);
+         `cmn_dbg(200, ("RX from PHY: %s", down_traffic.convert2string()))
+         case(down_traffic.phy_char)
             ACK: begin
                replay = replay_buffer.pop_front();
                `cmn_dbg(300, ("Item was acknowledged: %s", replay.convert2string()))
@@ -129,13 +130,13 @@ class link_cseq_c extends cmn_pkg::cseq_c#(link_item_c, link_item_c,
                std::randomize(send_nak) with {send_nak dist {1 := cfg.nak_pct, 0 := (100-cfg.nak_pct)}; };
                acks_to_send.put(send_nak);
                if(!send_nak)
-                  p_sequencer.put_up_response(rsp.trans_item);
+                  p_sequencer.put_up_traffic(down_traffic.trans_item);
             end
             default:
-               `cmn_err(("Link-layer must never see these: %s", rsp.convert2string()))
+               `cmn_err(("Link-layer must never see these: %s", down_traffic.convert2string()))
          endcase
       end
-   endtask : handle_down_rsp
+   endtask : handle_down_traffic
 
    ////////////////////////////////////////////
    // func: send_ack_nak

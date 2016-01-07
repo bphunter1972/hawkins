@@ -106,35 +106,37 @@ class trans_cseq_c extends cmn_pkg::cseq_c#(trans_item_c, trans_item_c,
    endtask : handle_up_items
 
    ////////////////////////////////////////////
-   // func: handle_down_rsp
+   // func: handle_down_traffic
    // Because send_read_response is a task, we cannot simply use create_up_rsp
-   // and must instead override handle_down_rsp
+   // and must instead override handle_down_traffic
    // This function handles all of the reads and writes, and only sends UP the responses
    // to reads from the OS level
-   virtual task handle_down_rsp();
-      forever begin
-         get_response(rsp); // rsp is a trans_item_c
-         `cmn_dbg(200, ("RX from LNK: %s", rsp.convert2string()))
+   virtual task handle_down_traffic();
+      trans_item_c down_traffic;
 
-         case(rsp.cmd)
+      forever begin
+         p_sequencer.get_down_traffic(down_traffic);
+         `cmn_dbg(200, ("RX from LNK: %s", down_traffic.convert2string()))
+
+         case(down_traffic.cmd)
             WR  : begin
-               memory[rsp.addr] = rsp.data;
-               `cmn_dbg(200, ("Wrote [%08X] = %016X", rsp.addr, rsp.data))
+               memory[down_traffic.addr] = down_traffic.data;
+               `cmn_dbg(200, ("Wrote [%08X] = %016X", down_traffic.addr, down_traffic.data))
             end
-            RD  : send_read_response(rsp);
+            RD  : send_read_response(down_traffic);
             RESP: begin
-               if(outstanding_reads.exists(rsp.tag)) begin
-                  os_item_c outstanding_read = outstanding_reads[rsp.tag];
-                  outstanding_read.data = rsp.data;
+               if(outstanding_reads.exists(down_traffic.tag)) begin
+                  os_item_c outstanding_read = outstanding_reads[down_traffic.tag];
+                  outstanding_read.data = down_traffic.data;
                   p_sequencer.put_up_response(outstanding_read);
-                  outstanding_reads.delete(rsp.tag);
-                  free_a_tag(rsp.tag);
+                  outstanding_reads.delete(down_traffic.tag);
+                  free_a_tag(down_traffic.tag);
                end else
-                  `cmn_err(("TAG:%01X Received response with tag that does not match any outstanding reads.", rsp.tag))
+                  `cmn_err(("TAG:%01X Received response with tag that does not match any outstanding reads.", down_traffic.tag))
             end
          endcase
       end
-   endtask : handle_down_rsp
+   endtask : handle_down_traffic
 
    ////////////////////////////////////////////
    // func: get_a_free_tag

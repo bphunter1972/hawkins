@@ -22,11 +22,11 @@
 `include "cmn_csqr.sv"
 
 class cseq_c#(type DOWN_REQ=uvm_sequence_item,
-              DOWN_RSP=DOWN_REQ,
+              DOWN_TRAFFIC=DOWN_REQ,
               UP_REQ=DOWN_REQ,
-              UP_RSP=DOWN_REQ,
+              UP_TRAFFIC=DOWN_REQ,
               CSQR=cmn_pkg::csqr_c)
-              extends uvm_sequence#(DOWN_REQ, DOWN_RSP);
+              extends uvm_sequence#(DOWN_REQ);
 
    `uvm_object_utils_begin(cmn_pkg::cseq_c)
    `uvm_object_utils_end
@@ -42,18 +42,11 @@ class cseq_c#(type DOWN_REQ=uvm_sequence_item,
    endfunction : new
 
    ////////////////////////////////////////////
-   // func: pre_body
-   // Assign csqr.cseq to me
-   virtual task pre_body();
-      $cast(p_sequencer.cseq, this);
-   endtask : pre_body
-
-   ////////////////////////////////////////////
    // func: body
    virtual task body();
       fork
          handle_up_items();
-         handle_down_rsp();
+         handle_down_traffic();
       join
    endtask : body
 
@@ -73,32 +66,32 @@ class cseq_c#(type DOWN_REQ=uvm_sequence_item,
    endtask : handle_up_items
 
    ////////////////////////////////////////////
-   // func: handle_down_rsp
-   // Get responses from downstream and push them upstream
-   virtual task handle_down_rsp();
-      DOWN_RSP down_rsp_item;
-      UP_RSP up_rsp_item;
+   // func: handle_down_traffic
+   // Get traffic from downstream, create upstream traffic, and push it up
+   virtual task handle_down_traffic();
+      DOWN_TRAFFIC down_traffic;
+      UP_TRAFFIC up_traffic;
 
       forever begin
-         get_response(down_rsp_item);
-         up_rsp_item = create_up_rsp(down_rsp_item);
-         if(up_rsp_item)
-            p_sequencer.put_up_response(up_rsp_item);
+         p_sequencer.get_down_traffic(down_traffic);
+         up_traffic = create_up_traffic(down_traffic);
+         if(up_traffic)
+            p_sequencer.put_up_traffic(up_traffic);
       end
-   endtask : handle_down_rsp
+   endtask : handle_down_traffic
 
    ////////////////////////////////////////////
    // func: make_down_req
-   // make a downstream request from an upstream request item
+   // make a downstream request item from an upstream request item
    virtual function DOWN_REQ make_down_req(ref DOWN_REQ _down_req_item,
                                                UP_REQ _up_req_item);
    endfunction : make_down_req
 
    ////////////////////////////////////////////
-   // func: create_up_rsp
-   // Create an upstream response item from the downstream response
-   virtual function UP_RSP create_up_rsp(ref DOWN_RSP _down_rsp_item);
-   endfunction : create_up_rsp
+   // func: create_up_traffic
+   // Create an upstream traffic item from the downstream traffic
+   virtual function UP_TRAFFIC create_up_traffic(ref DOWN_TRAFFIC _down_traffic);
+   endfunction : create_up_traffic
 
 endclass : cseq_c
 

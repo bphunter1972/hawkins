@@ -22,9 +22,9 @@
 `include "cmn_msgs.sv"
 
 // class: csqr_c
-class csqr_c#(type UP_REQ=uvm_sequence_item, UP_RSP=UP_REQ,
-              DOWN_REQ=uvm_sequence, DOWN_RSP=DOWN_REQ)
-              extends uvm_sequencer#(DOWN_REQ, DOWN_RSP);
+class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
+              DOWN_REQ=uvm_sequence_item, DOWN_TRAFFIC=DOWN_REQ)
+              extends uvm_sequencer#(DOWN_REQ);
    `uvm_component_utils_begin(cmn_pkg::csqr_c)
       `uvm_field_int(drv_disabled, UVM_DEFAULT)
    `uvm_component_utils_end
@@ -40,13 +40,22 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_RSP=UP_REQ,
    //----------------------------------------------------------------------------------------
    // Group: TLM Ports
 
-   // var: seq_item_port
-   // Gets the next sequence from sequencers above this one
-   uvm_seq_item_pull_port#(UP_REQ, UP_RSP) seq_item_port;
+   // var: up_seq_item_port
+   // Gets the next sequence from the upstream sequencer
+   uvm_seq_item_pull_port#(UP_REQ) up_seq_item_port;
+
+   // var: up_traffic_port
+   // Drives traffic back upstream
+   uvm_analysis_port#(UP_TRAFFIC) up_traffic_port;
+
+   // var: down_traffic_export
+   // Receives traffic from the downstream sequencer
+   uvm_analysis_export #(DOWN_TRAFFIC) down_traffic_export;
 
    // var: down_seq_item_port
    // Pulls downstream items from another chained sequencer just as a driver would
-   uvm_seq_item_pull_port#(DOWN_REQ, DOWN_RSP) down_seq_item_port;
+   // only created when drv_disabled == 1
+   uvm_seq_item_pull_port#(DOWN_REQ, DOWN_TRAFFIC) down_seq_item_port;
 
    //----------------------------------------------------------------------------------------
    // Group: Fields
@@ -58,15 +67,9 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_RSP=UP_REQ,
    // Triggered when the mailbox is pulled from
    event up_item_pulled;
 
-   // var: upstream_cseq
-   // The first sequence item from the upstream chaining sequence. All response items
-   // are set to it
-   uvm_sequence_base upstream_cseq;
-
-   // var: cseq
-   // The attached chaining sequence. This will be where downstream responses
-   // go when the driver has been disabled.
-   uvm_sequence_base cseq;
+   // var: down_traffic_fifo
+   // Receives the traffic from the downstream sequencer
+   uvm_tlm_analysis_fifo#(DOWN_TRAFFIC) down_traffic_fifo;
 
    //----------------------------------------------------------------------------------------
    // Group: Methods
@@ -79,61 +82,85 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_RSP=UP_REQ,
    // func: build_phase
    virtual function void build_phase(uvm_phase phase);
       super.build_phase(phase);
+
+      up_traffic_port = new("up_traffic_port", this);
+      down_traffic_export = new("down_traffic_export", this);
+      down_traffic_fifo = new("down_traffic_fifo", this);
+
       up_item_mbox = new();
-      seq_item_port = new("seq_item_port", this);
+      up_seq_item_port = new("up_seq_item_port", this);
       set_arbitration(UVM_SEQ_ARB_STRICT_FIFO);
       if(drv_disabled)
          down_seq_item_port = new("down_seq_item_port", this);
    endfunction : build_phase
 
    ////////////////////////////////////////////
+   // func: connect_phase
+   // Connect downstream traffic fifo to export
+   virtual function void connect_phase(uvm_phase phase);
+      super.connect_phase(phase);
+      down_traffic_export.connect(down_traffic_fifo.analysis_export);
+   endfunction : connect_phase
+
+   ////////////////////////////////////////////
    // func: run_phase
    virtual task run_phase(uvm_phase phase);
       fork
          super.run_phase(phase);
-         fetcher();
+         up_fetcher();
          if(drv_disabled)
             downstream_driver();
       join
    endtask : run_phase
 
    ////////////////////////////////////////////
-   // func: fetcher
-   virtual task fetcher();
+   // func: up_fetcher
+   virtual task up_fetcher();
       UP_REQ item;
-      seq_item_port.get_next_item(item);
-      upstream_cseq = item.get_parent_sequence();
-      `cmn_info(("Fetched upstream_cseq: %0d/%s:\n%s", upstream_cseq.get_sequence_id(), upstream_cseq.get_full_name(), upstream_cseq.convert2string()))
 
       forever begin
+         // get the next item
+         up_seq_item_port.get_next_item(item);
+
          up_item_mbox.put(item);
          @(up_item_pulled);
-         seq_item_port.item_done();
-
-         // get the next item
-         seq_item_port.get_next_item(item);
+         up_seq_item_port.item_done();
       end
-   endtask : fetcher
+   endtask : up_fetcher
 
    ////////////////////////////////////////////
    // func: downstream_driver
-   // Pulls the requests out of the down_seq_item_port, then receives responses
-   // from another chained sequencer and sends them back up the seq_item_export
+   // Pulls the requests out of the down_seq_item_port as a
+   // driver would. Converts these to downstream traffic and pushes
+   // it into the downstream fifo
    virtual task downstream_driver();
-      DOWN_REQ down_item;
+      DOWN_REQ down_req;
+      DOWN_TRAFFIC down_traffic;
 
       forever begin
-         down_seq_item_port.get_next_item(down_item);
-         `cmn_info(("Saw down_item: %s", down_item.convert2string()))
-         assert(cseq) else
-            `cmn_fatal(("Eek! There is no cseq"))
-         down_item.set_id_info(cseq);
-         `cmn_info(("Putting downstream response: %s to %0d/%s", down_item.convert2string(),
-            cseq.get_transaction_id(), cseq.get_full_name()))
-         put_response(down_item);
+         down_seq_item_port.get_next_item(down_req);
+         `cmn_info(("Saw down_req: %s", down_req.convert2string()))
+         down_traffic = convert_down_req(down_req);
+         down_traffic_fifo.analysis_export.write(down_traffic);
          down_seq_item_port.item_done();
       end
    endtask : downstream_driver
+
+   ////////////////////////////////////////////
+   // func: get_down_traffic
+   // Return the next available piece of traffic from downstream
+   virtual task get_down_traffic(ref DOWN_TRAFFIC _down_traffic);
+      down_traffic_fifo.get(_down_traffic);
+   endtask : get_down_traffic
+
+   ////////////////////////////////////////////
+   // func: convert_down_req
+   // Convert a downstream request to downstream traffic
+   // By default, these are the same and a cast will work. Override
+   // if necessary
+   virtual function DOWN_TRAFFIC convert_down_req(ref DOWN_REQ _down_req);
+      $cast(convert_down_req, _down_req);
+   endfunction : convert_down_req
 
    ////////////////////////////////////////////
    // func: try_get_up_item
@@ -155,23 +182,20 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_RSP=UP_REQ,
    endtask: get_up_item
 
    ////////////////////////////////////////////
+   // func: put_up_traffic
+   // Send traffic upstream.
+   virtual function void put_up_traffic(UP_TRAFFIC _up_traffic);
+      `cmn_info(("Putting upstream traffic: %s", _up_traffic.convert2string()))
+      up_traffic_port.write(_up_traffic);
+   endfunction : put_up_traffic
+
+   ////////////////////////////////////////////
    // func: put_up_response
-   // Send a response back upstream. If no transaction ID has been set
-   // for this response, then the first request received will be used
-   // instead
-   virtual function void put_up_response(UP_RSP _up_rsp);
-      `cmn_info(("Putting upstream response with trans_id=%0d", _up_rsp.get_transaction_id()))
-      if(_up_rsp.get_transaction_id() == -1 || drv_disabled) begin
-         if(upstream_cseq) begin
-            _up_rsp.set_id_info(upstream_cseq);
-         end else begin
-            `cmn_err(("A response is pending before upstream ID information was found."))
-            return;
-         end
-      end
-      `cmn_info(("Putting upstream response: %s to %0d/%s:\n%s", _up_rsp.convert2string(), upstream_cseq.get_transaction_id(), upstream_cseq.get_full_name(), upstream_cseq.convert2string()))
-      seq_item_port.put_response(_up_rsp);
+   // Send a response upstream using the sequence item port
+   virtual function void put_up_response(UP_TRAFFIC _up_traffic);
+      up_seq_item_port.put_response(_up_traffic);
    endfunction : put_up_response
+
 endclass : csqr_c
 
 `endif // __CMN_CSQR_SV__
