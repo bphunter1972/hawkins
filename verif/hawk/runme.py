@@ -1,5 +1,7 @@
 #!/usr/bin/env python2.7
 
+"A very rudimentary program to launch compiles and simulations"
+
 from __future__ import print_function
 import subprocess
 import sys
@@ -26,6 +28,9 @@ def parse_args():
         else:
             if var in cmd_args:
                 cmd_args[var] = val
+    if cmd_args['COMPILE'] in ('0', 'False'):
+        cmd_args['COMPILE'] = False
+
     return cmd_args
 
 ########################################################################################
@@ -64,7 +69,7 @@ if __name__ == '__main__':
         os.makedirs(sim_dir)
 
     if cmd_args['COMPILE']:
-        cmd = 'qrsh -q verilog -l lic_cmp_vcs=1 "runmod -m synopsys-vcs_mx/J-2014.12-SP2 vcs -CFLAGS \'-DVCS\' -full64 -o simv -f vcs.flist"'
+        cmd = 'qrsh -q verilog -l lic_cmp_vcs=1 -n compile "runmod -m synopsys-vcs_mx/J-2014.12-SP2 vcs -CFLAGS \'-DVCS\' -full64 -o simv -f vcs.flist"'
         p = subprocess.Popen(cmd, stdout=sys.stdout, stderr=subprocess.STDOUT, shell=True)
         stdout, stderr = p.communicate()
 
