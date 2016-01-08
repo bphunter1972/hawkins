@@ -30,6 +30,7 @@ class agent_c extends uvm_agent;
    `uvm_component_utils_begin(hawk_pkg::agent_c)
       `uvm_field_enum(uvm_active_passive_enum, is_active, UVM_ALL_ON)
       `uvm_field_int(phy_enable, UVM_DEFAULT)
+      `uvm_field_int(link_enable, UVM_DEFAULT)
    `uvm_component_utils_end
 
    //----------------------------------------------------------------------------------------
@@ -38,6 +39,11 @@ class agent_c extends uvm_agent;
    // var: phy_enable
    // When set, the PHY CSQR will be connected, and the driver and monitor will also be created
    bit phy_enable = 1;
+
+   // var: link_enable
+   // When set, the LINK CSQR will be created and connected. When clear, the transaction level
+   // is the last point in the chain
+   bit link_enable = 1;
 
    //----------------------------------------------------------------------------------------
    // Group: TLM Ports
@@ -93,22 +99,33 @@ class agent_c extends uvm_agent;
    virtual function void build_phase(uvm_phase phase);
       super.build_phase(phase);
 
+
+      if(is_active) begin
+         trans_csqr = trans_csqr_c::type_id::create("trans_csqr", this);
+         os_sqr = os_sqr_c::type_id::create("os_sqr", this);
+      end else begin
+         phy_enable = 0;
+         link_enable = 0;
+      end
+
+      if(!link_enable)
+         phy_enable = 0;
+
+      if(link_enable)
+         link_csqr = link_csqr_c::type_id::create("link_csqr", this);
+      else begin
+         `cmn_info(("link_enable = %0b", link_enable))
+         uvm_config_db#(int)::set(this, "trans_csqr", "chain_break", 1);
+      end
+
       if(phy_enable) begin
          mon_item_port = new("mon_item_port", this);
          inb_item_export = new("inb_item_export", this);
          mon = mon_c::type_id::create("mon", this);
-         if(is_active) begin
-            drv = drv_c::type_id::create("drv", this);
-            phy_csqr = phy_csqr_c::type_id::create("phy_csqr", this);
-         end
+         drv = drv_c::type_id::create("drv", this);
+         phy_csqr = phy_csqr_c::type_id::create("phy_csqr", this);
       end else
          uvm_config_db#(int)::set(this, "link_csqr", "chain_break", 1);
-
-      if(is_active) begin
-         link_csqr = link_csqr_c::type_id::create("link_csqr", this);
-         trans_csqr = trans_csqr_c::type_id::create("trans_csqr", this);
-         os_sqr = os_sqr_c::type_id::create("os_sqr", this);
-      end
 
       rx_os_item_port = new("rx_os_item_port", this);
    endfunction : build_phase
@@ -127,10 +144,12 @@ class agent_c extends uvm_agent;
             inb_item_export.connect(phy_csqr.down_traffic_export);
          end
 
-         link_csqr.up_seq_item_port.connect(trans_csqr.seq_item_export);
-         trans_csqr.up_seq_item_port.connect(os_sqr.seq_item_export);
-         link_csqr.up_traffic_port.connect(trans_csqr.down_traffic_export);
+         if(link_enable) begin
+            link_csqr.up_seq_item_port.connect(trans_csqr.seq_item_export);
+            link_csqr.up_traffic_port.connect(trans_csqr.down_traffic_export);
+         end
 
+         trans_csqr.up_seq_item_port.connect(os_sqr.seq_item_export);
          trans_csqr.up_traffic_port.connect(rx_os_item_port);
          trans_csqr.up_traffic_port.connect(os_sqr.rcvd_os_item_export);
       end

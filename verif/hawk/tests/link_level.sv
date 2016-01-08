@@ -23,11 +23,7 @@
 
 // class: link_level_test_c
 class link_level_test_c extends basic_test_c;
-   `uvm_component_utils_begin(link_level_test_c)
-   `uvm_component_utils_end
-
-   //----------------------------------------------------------------------------------------
-   // Group: Constraints
+   `uvm_component_utils(link_level_test_c)
 
    //----------------------------------------------------------------------------------------
    // Group: Methods
@@ -43,12 +39,6 @@ class link_level_test_c extends basic_test_c;
       uvm_config_db#(int)::set(this, "hawk_env", "phy_enable", 0);
       super.build_phase(phase);
    endfunction : build_phase
-
-   ////////////////////////////////////////////
-   // func: run_phase
-   // Ensure that no training sequences run
-   virtual task run_phase(uvm_phase phase);
-   endtask : run_phase
 
 endclass : link_level_test_c
 

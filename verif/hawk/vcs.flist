@@ -21,4 +21,5 @@ tests/base_test.sv
 tests/nak.sv
 tests/bad_crc.sv
 tests/link_level.sv
+tests/trans_level.sv
 
