@@ -38,8 +38,12 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
    uvm_sequencer_arb_mode sqr_arb_mode = UVM_SEQ_ARB_STRICT_FIFO;
 
    // var: chain_break
+   // Set this configuration variable if this chained sequencer is the end of the chain but
+   // does NOT send to a driver.
+   //
    // When set, the down_seq_item_port is created and takes the place of another chained
-   // sequencer's driver. Downstream requests are then automatically pulled.
+   // sequencer's driver. Downstream requests are then automatically pulled from the opposite
+   // side's chained sequencer.
    bit chain_break = 0;
 
    //----------------------------------------------------------------------------------------
@@ -58,7 +62,7 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
    uvm_analysis_export #(DOWN_TRAFFIC) down_traffic_export;
 
    // var: down_seq_item_port
-   // Pulls downstream items from another chained sequencer just as a driver would
+   // Pulls downstream items from another chained sequencer just as a driver would.
    // only created when chain_break == 1
    uvm_seq_item_pull_port#(DOWN_REQ, DOWN_TRAFFIC) down_seq_item_port;
 
@@ -87,7 +91,6 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
       up_traffic_port = new("up_traffic_port", this);
       down_traffic_export = new("down_traffic_export", this);
       down_traffic_fifo = new("down_traffic_fifo", this);
-
       up_seq_item_port = new("up_seq_item_port", this);
       up_seq_item_fifo = new("up_seq_item_fifo", this);
       set_arbitration(sqr_arb_mode);
@@ -139,7 +142,6 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
 
       forever begin
          down_seq_item_port.get_next_item(down_req);
-         `cmn_info(("Saw down_req: %s", down_req.convert2string()))
          down_traffic = convert_down_req(down_req);
          down_traffic_fifo.analysis_export.write(down_traffic);
          down_traffic_user_task(down_traffic);
@@ -150,8 +152,8 @@ class csqr_c#(type UP_REQ=uvm_sequence_item, UP_TRAFFIC=UP_REQ,
    ////////////////////////////////////////////
    // func: convert_down_req
    // Convert a downstream request to downstream traffic
-   // By default, these are the same and a cast will work. Override
-   // if necessary
+   // By default, these are the same types and a cast will work. Override
+   // if necessary.
    virtual function DOWN_TRAFFIC convert_down_req(ref DOWN_REQ _down_req);
       $cast(convert_down_req, _down_req);
    endfunction : convert_down_req

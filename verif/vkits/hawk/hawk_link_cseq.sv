@@ -166,7 +166,7 @@ class link_cseq_c extends cmn_pkg::cseq_c#(link_item_c, link_item_c,
       if(replay == null)
          `cmn_err(("Received a NAK but there were no outstanding replays."))
       else begin
-         `cmn_dbg(1000, ("NAK RCVD for this packet: %s", replay.convert2string()))
+         `cmn_dbg(400, ("NAK RCVD for this packet: %s", replay.convert2string()))
          // re-send with high priority
          // lock to ensure it does not intermingle with packets from send_link_items
          lock();

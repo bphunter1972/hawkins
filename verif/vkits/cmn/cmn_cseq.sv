@@ -21,6 +21,9 @@
 
 `include "cmn_csqr.sv"
 
+//****************************************************************************************
+// class: cseq_c
+// A parameterizable base class for chaining sequences.
 class cseq_c#(type DOWN_REQ=uvm_sequence_item,
               DOWN_TRAFFIC=DOWN_REQ,
               UP_REQ=DOWN_REQ,
@@ -31,9 +34,6 @@ class cseq_c#(type DOWN_REQ=uvm_sequence_item,
    `uvm_object_utils_begin(cmn_pkg::cseq_c)
    `uvm_object_utils_end
    `uvm_declare_p_sequencer(CSQR)
-
-   //----------------------------------------------------------------------------------------
-   // Group: Fields
 
    //----------------------------------------------------------------------------------------
    // Group: Methods
@@ -135,7 +135,6 @@ class cseq_c#(type DOWN_REQ=uvm_sequence_item,
    // Create an upstream traffic item from the downstream traffic
    virtual function UP_TRAFFIC create_up_traffic(ref DOWN_TRAFFIC _down_traffic);
    endfunction : create_up_traffic
-
 endclass : cseq_c
 
 `endif // __CMN_CSEQ_SV__
