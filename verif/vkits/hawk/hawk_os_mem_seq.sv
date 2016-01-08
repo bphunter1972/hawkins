@@ -1,20 +1,19 @@
-//-*- mode: Verilog; verilog-indent-level: 3; indent-tabs-mode: nil; tab-width: 1 -*-
-// vim: tabstop=3 expandtab shiftwidth=3 softtabstop=3
 
-// **********************************************************************
-// * CAVIUM CONFIDENTIAL AND PROPRIETARY NOTE
-// *
-// * This software contains information confidential and proprietary to
-// * Cavium, Inc. It shall not be reproduced in whole or in part, or
-// * transferred to other documents, or disclosed to third parties, or
-// * used for any purpose other than that for which it was obtained,
-// * without the prior written consent of Cavium, Inc.
-// * Copyright 2016, Cavium, Inc.  All rights reserved.
-// * (utg v1.3.2)
 // ***********************************************************************
 // File:   hawk_os_mem_seq.sv
 // Author: bhunter
-/* About:  Handles all memory reads, writes, and responses.
+/* About: Handles all memory reads, writes, and responses.
+   Copyright (C) 2015-2016  Brian P. Hunter
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
  *************************************************************************/
 
 `ifndef __HAWK_OS_MEM_SEQ_SV__
@@ -66,13 +65,14 @@ class os_mem_seq_c extends uvm_sequence #(os_item_c, os_item_c);
 
    ////////////////////////////////////////////
    // func: send_read_response
-   // Respond to a read
+   // Given a read request, fetch the memory data and send a response item
+   // that contains the correct data
+   // return zeroes and emit a warning when reading from an uninitialized memory location
    virtual task send_read_response(os_item_c _read_request);
       os_item_c response_item;
       data_t rsp_data;
 
       if(!mem.memory.exists(_read_request.addr)) begin
-         // return zeroes and emit a warning
          mem.memory[_read_request.addr] = 0;
          `cmn_warn(("Reading from uninitialized mem.memory location [%016X]", _read_request.addr))
       end
@@ -87,7 +87,6 @@ class os_mem_seq_c extends uvm_sequence #(os_item_c, os_item_c);
 
       `cmn_dbg(200, ("Responding: %s", response_item.convert2string()))
    endtask : send_read_response
-
 endclass : os_mem_seq_c
 
 `endif // __HAWK_OS_MEM_SEQ_SV__
