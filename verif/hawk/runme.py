@@ -69,7 +69,7 @@ if __name__ == '__main__':
         os.makedirs(sim_dir)
 
     if cmd_args['COMPILE']:
-        cmd = 'qrsh -q verilog -l lic_cmp_vcs=1 -n compile "runmod -m synopsys-vcs_mx/J-2014.12-SP2 vcs -CFLAGS \'-DVCS\' -full64 -o simv -f vcs.flist"'
+        cmd = 'qrsh -q verilog -l lic_cmp_vcs=1 "runmod -m synopsys-vcs_mx/J-2014.12-SP2 vcs -CFLAGS \'-DVCS\' -full64 -o simv -f vcs.flist"'
         p = subprocess.Popen(cmd, stdout=sys.stdout, stderr=subprocess.STDOUT, shell=True)
         stdout, stderr = p.communicate()
 
