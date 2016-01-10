@@ -86,7 +86,7 @@ class link_cseq_c extends cmn_pkg::cseq_c#(link_item_c, link_item_c,
    // Manage all upstream transaction items, wrapping them with LINK ID and
    // sending them on as link-level items
    virtual task handle_up_items();
-      UP_REQ trans_item;
+      trans_item_c trans_item;
       link_item_c link_item;
       forever begin
          get_next_up_item(trans_item);
