@@ -78,6 +78,12 @@ class env_c extends uvm_env;
       // distribute memories to each agent's os sqr
       uvm_config_db#(uvm_object)::set(this, "rx_agent.os_sqr", "mem", rx_mem);
       uvm_config_db#(uvm_object)::set(this, "tx_agent.os_sqr", "mem", tx_mem);
+
+      // distribute link_chain_break delays whenever phy_enable is zero but link_enable is 1
+      if(phy_enable == 0 && link_enable == 1) begin
+         uvm_config_db#(uvm_object)::set(this, "rx_agent.link_csqr", "rand_delays", cfg.rx_link_chain_break_delays);
+         uvm_config_db#(uvm_object)::set(this, "tx_agent.link_csqr", "rand_delays", cfg.tx_link_chain_break_delays);
+      end
    endfunction : build_phase
 
    ////////////////////////////////////////////

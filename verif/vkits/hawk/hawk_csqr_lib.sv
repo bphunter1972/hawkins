@@ -49,6 +49,7 @@ class link_csqr_c extends cmn_pkg::csqr_c#(trans_item_c, trans_item_c,
                                           link_item_c, link_item_c);
    `uvm_component_utils_begin(hawk_pkg::link_csqr_c)
       `uvm_field_object(cfg, UVM_DEFAULT)
+      `uvm_field_object(rand_delays, UVM_DEFAULT)
    `uvm_component_utils_end
 
    //----------------------------------------------------------------------------------------
@@ -57,6 +58,10 @@ class link_csqr_c extends cmn_pkg::csqr_c#(trans_item_c, trans_item_c,
    // var: cfg
    // The cfg class
    cfg_c cfg;
+
+   // var: rand_delays
+   // Provides a random delay
+   cmn_pkg::rand_delays_c rand_delays;
 
    //----------------------------------------------------------------------------------------
    // Group: Methods
@@ -70,9 +75,13 @@ class link_csqr_c extends cmn_pkg::csqr_c#(trans_item_c, trans_item_c,
    // When the PHY level is disabled, a random delay between 5 and 30ns is added to
    // simulate phy-level activity
    virtual task down_traffic_user_task(ref DOWN_TRAFFIC _down_traffic);
-      int unsigned delay_ns;
-      std::randomize(delay_ns) with { delay_ns inside {[5:30]}; };
-      #(delay_ns * 1ns);
+      cmn_pkg::rand_delays_c::delay_t delay;
+
+      // wait for a random delay period
+      delay = rand_delays.get_next_delay();
+      `cmn_info(("Waiting %0d ns", delay))
+      #(delay * 1ns);
+      `cmn_info(("Done waiting"))
    endtask : down_traffic_user_task
 endclass : link_csqr_c
 

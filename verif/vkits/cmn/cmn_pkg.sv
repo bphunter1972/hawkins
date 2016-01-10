@@ -35,6 +35,7 @@ package cmn_pkg;
 `include "cmn_csqr.sv"
 `include "cmn_msgs.sv"
 `include "cmn_objection.sv"
+`include "cmn_rand_delays.sv"
 `include "cmn_report_server.sv"
 `include "cmn_rst_drv.sv"
 `include "cmn_uid.sv"
