@@ -57,19 +57,20 @@ class phy_item_c extends uvm_sequence_item;
       convert2string = uid.convert2string();
       if(valid)
          convert2string = $sformatf("%s PKT D:%02X", convert2string, data);
-      else if(data inside {ACK, NAK, TRN, EOP}) begin
+      else if(data inside {ACK, NAK, TRAIN, EOP}) begin
          phy_char_e pchar = phy_char_e'(data);
          convert2string = {convert2string, " ", pchar.name()};
+         `cmn_info(("Here"))
       end else
-         convert2string = "IDLE";
+         convert2string = $sformatf("IDLE:%02X", data);
    endfunction : convert2string
 
    ////////////////////////////////////////////
-   // func: is_idle_or_trn
+   // func: is_idle_or_train
    // Returns 1 if this is either an IDLE or a training
-   virtual function bit is_idle_or_trn();
+   virtual function bit is_idle_or_train();
       return(valid == 0 && !(data inside {ACK, NAK, EOP}));
-   endfunction : is_idle_or_trn
+   endfunction : is_idle_or_train
 endclass : phy_item_c
 
 `endif // __HAWK_PHY_ITEM_SV__

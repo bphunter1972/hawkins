@@ -46,7 +46,7 @@ class link_item_c extends uvm_sequence_item;
    // Cannot be an idle or training. Link layer doesn't deal with these
    constraint phy_char_cnstr {
       phy_char != IDLE;
-      phy_char != TRN;
+      phy_char != TRAIN;
    }
 
    // var: link_id
@@ -112,7 +112,7 @@ class link_item_c extends uvm_sequence_item;
                convert2string = {convert2string, " BAD_CRC"};
          end
          default: begin
-            `cmn_err(("Link should never see IDLEs, EOP, or TRN."))
+            `cmn_err(("Link should never see IDLEs, EOP, or TRAIN."))
             return "";
          end
       endcase
