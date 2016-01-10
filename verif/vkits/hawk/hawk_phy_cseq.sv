@@ -21,6 +21,8 @@
 
 `include "hawk_link_item.sv"
 `include "hawk_phy_item.sv"
+`include "hawk_phy_idle_seq.sv"
+`include "hawk_phy_train_seq.sv"
 
 typedef class phy_csqr_c;
 
@@ -39,9 +41,13 @@ class phy_cseq_c extends cmn_pkg::cseq_c#(phy_item_c, phy_item_c,
    ////////////////////////////////////////////
    // func: body
    virtual task body();
+      phy_idle_seq_c phy_idle_seq;
+      phy_train_seq_c phy_train_seq;
+
       fork
          handle_up_items();
-         send_idles();
+         `uvm_do(phy_idle_seq)
+         `uvm_do(phy_train_seq)
          handle_down_traffic();
       join
    endtask : body
@@ -91,25 +97,6 @@ class phy_cseq_c extends cmn_pkg::cseq_c#(phy_item_c, phy_item_c,
    endtask : handle_up_items
 
    ////////////////////////////////////////////
-   // func: send_idles
-   // Constantly send idles. These have the lowest priority, so will
-   // only win arbitration when nothing else is going on
-   virtual task send_idles();
-      byte unsigned idle_cnt = 0;
-      phy_item_c idle_item;
-
-      forever begin
-         if(idle_cnt == 'hF1)
-            idle_cnt = 0;
-         `uvm_do_pri_with(idle_item, IDLE_PRI, {
-            valid == 0;
-            data == idle_cnt;
-         })
-         idle_cnt += 1;
-      end
-   endtask : send_idles
-
-   ////////////////////////////////////////////
    // func: handle_down_traffic
    // Pull phy items from sequencer. Filter out idles and training.
    // from the rest, pack up as link_items and send as upstream traffic
@@ -123,7 +110,7 @@ class phy_cseq_c extends cmn_pkg::cseq_c#(phy_item_c, phy_item_c,
          `cmn_dbg(200, ("RX from DRV: %s", down_traffic.convert2string()))
 
          // if it's either IDLE or training, then toss it on the floor
-         if(down_traffic.is_idle_or_trn())
+         if(down_traffic.is_idle_or_train())
             continue;
 
          if(down_traffic.valid == 1)
