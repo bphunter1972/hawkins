@@ -44,27 +44,14 @@ class watchdog_c extends uvm_component;
    endfunction : new
 
    ////////////////////////////////////////////
-   // func: build_phase
-   virtual function void build_phase(uvm_phase phase);
-      super.build_phase(phase);
-   endfunction : build_phase
-
-   ////////////////////////////////////////////
    // func: start_of_simulation_phase
    // At the start of simulation, check for plusargs to override any modifications to the watchdog_time
    virtual function void start_of_simulation_phase(uvm_phase phase);
-      int  cl_wdog_time;
-      int  cl_wdogx_time;
-
+      int  plus_wdog_time;
       super.start_of_simulation_phase(phase);
-
-      if($value$plusargs("wdog=%d", cl_wdog_time))
-        watchdog_time = cl_wdog_time;
-
-      if($value$plusargs("wdogx=%d", cl_wdogx_time))
-        watchdog_time *= cl_wdogx_time;
-
-      `cmn_dbg(100, ("Global Watchdog Timer set to %0dns.", watchdog_time))
+      if($value$plusargs("wdog=%d", plus_wdog_time))
+         watchdog_time = plus_wdog_time;
+      `cmn_info(("Global Watchdog Timer set to %0dns.", watchdog_time))
    endfunction : start_of_simulation_phase
 
    ////////////////////////////////////////////
@@ -84,9 +71,9 @@ class watchdog_c extends uvm_component;
       // TODO: Not using current phase, since we're doing a uvm_domain::jump_all().
       current_phase = env.get_current_phase();
       if(current_phase == null) begin
-        `cmn_fatal(("Exiting due to timeout. ERROR: Could not identify phase/objection responsible"))
+         `cmn_fatal(("Exiting due to timeout. ERROR: Could not identify phase/objection responsible"))
       end else begin
-        uvm_domain::jump_all(uvm_extract_phase::get());
+         uvm_domain::jump_all(uvm_extract_phase::get());
       end
    endtask : run_phase
 
@@ -94,9 +81,8 @@ class watchdog_c extends uvm_component;
    // func: final_phase
    // Issue a fatal error
    virtual function void final_phase(uvm_phase phase);
-      if(timeout_occurred) begin
+      if(timeout_occurred)
          `cmn_fatal(("Exiting due to watchdog timeout."))
-      end
    endfunction : final_phase
 
    ////////////////////////////////////////////
@@ -107,7 +93,8 @@ class watchdog_c extends uvm_component;
       uvm_object objectors[$];
       uvm_phase current_phase = env.get_current_phase();
 
-      if(current_phase == null) return "ERROR: Could not identify current phase/objection";
+      if(current_phase == null)
+         return "ERROR: Could not identify current phase/objection";
       current_phase.get_objection().get_objectors(objectors);
 
       s = {s,$sformatf("\n\nCurrently Executing Phase :   %s\n", current_phase.get_name())};
