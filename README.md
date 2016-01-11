@@ -12,3 +12,18 @@ If you have not yet purchased Advanced UVM, what are you waiting for?!?
 Textbook + ebook:  http://tinyurl.com/AdvancedUVM
 Kindle ebook:      http://tinyurl.com/AdvancedUVM-ebook
 
+
+Scripts
+=======
+
+The following scripts are rudimentary python scripts to launch the different tests in the verif/hawk directory. They very likely will need minor tweaks to work within your environment.
+
+verif/hawk/runme.py       - Used to compile and launch a single test.
+verif/hawk/regression.py  - Runs all tests.
+
+Questions?
+==========
+
+Any and all questions can be emailed to the following address. I will do my best to answer them as soon as I can.
+
+advanced (dot) uvm (at) gmail (dot) com
