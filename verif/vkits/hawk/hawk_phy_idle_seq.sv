@@ -44,7 +44,7 @@ class phy_idle_seq_c extends uvm_sequence #(phy_item_c, phy_item_c);
              valid == 0;
              data == idle_cnt;
          })
-         idle_cnt = (idle_cnt == 'hFF)? 0 : idle_cnt + 1;
+         idle_cnt = (idle_cnt == 'hF0)? 0 : idle_cnt + 1;
       end
    endtask : body
 endclass : phy_idle_seq_c
