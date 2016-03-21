@@ -14,6 +14,7 @@ DEFAULTS = {
     'SIMARGS' : '+UVM_NO_RELNOTES',
     'DBG'  : 0,
     'CLEAN': False,
+    'GUI'  : False,
 }
 
 ########################################################################################
@@ -68,15 +69,20 @@ if __name__ == '__main__':
     if not os.path.exists(sim_dir):
         os.makedirs(sim_dir)
 
+    load_modules = ['synopsys-vcs_mx/K-2015.09-SP1', 'synopsys-verdi/K-2015.09-SP1']
+    mod_load = '; '.join(['module load {}'.format(it) for it in load_modules])
+
     if cmd_args['COMPILE']:
-        cmd = 'qrsh -q verilog -l lic_cmp_vcs=1 "runmod -m synopsys-vcs_mx/J-2014.12-SP2 vcs -CFLAGS \'-DVCS\' -full64 -o simv -f vcs.flist"'
+        cmd = 'qrsh -q verilog -l lic_cmp_vcs=1 "{}; vcs -CFLAGS \'-DVCS\' -full64 -o simv -kdb -lca -debug_all -f vcs.flist"'.format(mod_load)
         p = subprocess.Popen(cmd, stdout=sys.stdout, stderr=subprocess.STDOUT, shell=True)
         stdout, stderr = p.communicate()
 
-    cmd = 'qrsh -q verilog -l lic_sim_vcs=1 simv -l sim/{TEST}/logfile +UVM_TESTNAME={TEST}_test_c {SIMARGS}'.format(**cmd_args)
+    cmd = 'qrsh -q verilog -l lic_sim_vcs=1 "{}; simv -l sim/{TEST}/logfile +UVM_TESTNAME={TEST}_test_c {SIMARGS}"'.format(mod_load, **cmd_args)
     if cmd_args['FSDB']:
         cmd += ' +fsdb_trace=1 +fsdb_outfile=sim/{TEST}/waves.fsdb'.format(**cmd_args)
     if cmd_args['DBG']:
         cmd += ' +UVM_VERBOSITY={DBG}'.format(**cmd_args)
+    if cmd_args['GUI']:
+        cmd += ' -verdi'
     p = subprocess.Popen(cmd, stdout=sys.stdout, stderr=subprocess.STDOUT, shell=True)
     stdout, stderr = p.communicate()
