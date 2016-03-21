@@ -38,6 +38,8 @@ package hawk_pkg;
    `include "hawk_os_mem_seq.sv"
    `include "hawk_os_seq_lib.sv"
    `include "hawk_os_sqr.sv"
+   `include "hawk_passive_drv.sv"
+   `include "hawk_passive_trans_cseq.sv"
    `include "hawk_phy_cseq.sv"
    `include "hawk_phy_idle_seq.sv"
    `include "hawk_phy_item.sv"

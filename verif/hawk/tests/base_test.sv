@@ -39,6 +39,10 @@ class base_test_c extends uvm_test;
    // The Hawk Environment creates an RX and TX agent
    hawk_pkg::env_c hawk_env;
 
+   // var: passive_hawk_env
+   // Passively watches the same hawk interface
+   hawk_pkg::env_c passive_hawk_env;
+
    // var: tb_clk_drv
    // The hawk clock driver
    cmn_pkg::clk_drv_c tb_clk_drv;
@@ -74,6 +78,11 @@ class base_test_c extends uvm_test;
       hawk_env = hawk_pkg::env_c::type_id::create("hawk_env", this);
       uvm_config_db#(uvm_object)::set(this, "hawk_env", "cfg", cfg);
 
+      // create passive environment
+      passive_hawk_env = hawk_pkg::env_c::type_id::create("passive_hawk_env", this);
+      uvm_config_db#(uvm_object)::set(this, "passive_hawk_env", "cfg", cfg);
+      uvm_config_db#(int)::set(this, "passive_hawk_env", "is_active", UVM_PASSIVE);
+
       // Not randomized by default.  Derived tests can randomize in end_of_elaboration_phase.
       // Create the clock driver
       uvm_config_db#(string)::set(this, "tb_clk_drv", "intf_name", "tb_clk_vi");
@@ -88,6 +97,8 @@ class base_test_c extends uvm_test;
       // set agents to drive and monitor the correct interface
       uvm_config_db#(string)::set(this, "hawk_env.tx_agent.*", "intf_name", "hawk_tx_vi");
       uvm_config_db#(string)::set(this, "hawk_env.rx_agent.*", "intf_name", "hawk_rx_vi");
+      uvm_config_db#(string)::set(this, "passive_hawk_env.tx_agent.*", "intf_name", "hawk_tx_vi");
+      uvm_config_db#(string)::set(this, "passive_hawk_env.rx_agent.*", "intf_name", "hawk_rx_vi");
 
       uvm_config_db#(uvm_object_wrapper)::set(this, "hawk_env.*_agent.os_sqr.main_phase", "default_sequence", hawk_pkg::os_main_seq_c::type_id::get());
 
@@ -95,6 +106,10 @@ class base_test_c extends uvm_test;
       uvm_config_db#(uvm_object_wrapper)::set(this, "hawk_env.*_agent.phy_csqr.run_phase", "default_sequence", hawk_pkg::phy_cseq_c::type_id::get());
       uvm_config_db#(uvm_object_wrapper)::set(this, "hawk_env.*_agent.link_csqr.run_phase", "default_sequence", hawk_pkg::link_cseq_c::type_id::get());
       uvm_config_db#(uvm_object_wrapper)::set(this, "hawk_env.*_agent.trans_csqr.run_phase", "default_sequence", hawk_pkg::trans_cseq_c::type_id::get());
+
+      uvm_config_db#(uvm_object_wrapper)::set(this, "passive_hawk_env.*_agent.phy_csqr.run_phase", "default_sequence", hawk_pkg::phy_cseq_c::type_id::get());
+      uvm_config_db#(uvm_object_wrapper)::set(this, "passive_hawk_env.*_agent.link_csqr.run_phase", "default_sequence", hawk_pkg::link_cseq_c::type_id::get());
+      uvm_config_db#(uvm_object_wrapper)::set(this, "passive_hawk_env.*_agent.trans_csqr.run_phase", "default_sequence", hawk_pkg::passive_trans_cseq_c::type_id::get());
    endfunction : build_phase
 
    ////////////////////////////////////////////
