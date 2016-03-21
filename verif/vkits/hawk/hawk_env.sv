@@ -29,7 +29,6 @@ class env_c extends uvm_env;
       `uvm_field_object(cfg, UVM_REFERENCE)
       `uvm_field_int(phy_enable, UVM_DEFAULT)
       `uvm_field_int(link_enable, UVM_DEFAULT)
-      `uvm_field_enum(uvm_active_passive_enum, is_active, UVM_DEFAULT)
    `uvm_component_utils_end
 
    //----------------------------------------------------------------------------------------
@@ -46,10 +45,6 @@ class env_c extends uvm_env;
    // var: link_enable
    // When link csqr is present.
    bit link_enable = 1;
-
-   // var: is_active
-   // Set to UVM_PASSIVE to only monitor the interface
-   uvm_active_passive_enum is_active = UVM_ACTIVE;
 
    //----------------------------------------------------------------------------------------
    // Group: Fields
@@ -90,12 +85,6 @@ class env_c extends uvm_env;
       if(phy_enable == 0 && link_enable == 1) begin
          uvm_config_db#(uvm_object)::set(this, "rx_agent.link_csqr", "rand_delays", cfg.rx_link_chain_break_delays);
          uvm_config_db#(uvm_object)::set(this, "tx_agent.link_csqr", "rand_delays", cfg.tx_link_chain_break_delays);
-      end
-
-      // passive environments have passive drivers
-      if(is_active == UVM_PASSIVE) begin
-         set_inst_override_by_type("rx_agent.drv", drv_c::get_type(), passive_drv_c::get_type());
-         set_inst_override_by_type("tx_agent.drv", drv_c::get_type(), passive_drv_c::get_type());
       end
    endfunction : build_phase
 
