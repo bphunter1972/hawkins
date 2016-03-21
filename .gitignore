@@ -10,3 +10,10 @@ verif/hawk/novas_dump.log
 verif/hawk/novas.conf
 verif/hawk/verdiLog/
 verif/hawk/novas.rc
+._synopsys_sim.setup
+verif/hawk/DVEfiles/
+verif/hawk/elabcomLog/
+verif/hawk/inter.fsdb
+verif/hawk/inter.vpd
+verif/hawk/work.lib++/
+verif/vkits/hawk/._*
