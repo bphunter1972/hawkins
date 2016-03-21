@@ -60,7 +60,6 @@ class phy_item_c extends uvm_sequence_item;
       else if(data inside {ACK, NAK, TRAIN, EOP}) begin
          phy_char_e pchar = phy_char_e'(data);
          convert2string = {convert2string, " ", pchar.name()};
-         `cmn_info(("Here"))
       end else
          convert2string = $sformatf("IDLE:%02X", data);
    endfunction : convert2string
