@@ -5,6 +5,8 @@
 from __future__ import print_function
 import subprocess
 import os
+import sys
+import runme
 
 ########################################################################################
 def get_tests():
@@ -16,7 +18,13 @@ def get_tests():
 
 ########################################################################################
 def check(test_name):
+    import time
+
     filename = os.path.join('sim', test_name, 'logfile')
+    # wait for logfile to exist
+    if os.path.exists(filename) == False:
+        print("FAILED...couldn't find {}".format(filename))
+        return
     with open(filename) as logfile:
         num_issues = 0
         start_looking = False
@@ -34,13 +42,25 @@ def check(test_name):
 
 ########################################################################################
 if __name__ == '__main__':
+    from multiprocessing import Process
+    from shutil import rmtree
+
+    # remove simulation directory
+    rmtree('sim', ignore_errors=True)
+
+    devnull = open(os.devnull, 'w')
+    runme.STDOUT = devnull
+
+    # get all tests
     tests = get_tests()
 
     for idx, test in enumerate(tests):
-        cmd = 'runme.py TEST={}'.format(test)
+        test_args = 'TEST={}'.format(test)
         if idx:
-            cmd += ' COMPILE=0'
-        print("Running: {}".format(cmd), end='...')
-        p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
-        stdout, stderr = p.communicate()
-        check(test)
+            test_args += ' COMPILE=0'
+        print("Running: {}".format(test_args), end='...')
+        p = Process(target=runme.main, kwargs={'argv': test_args})
+        p.start()
+        p.join()
+        passed = check(test)
+
