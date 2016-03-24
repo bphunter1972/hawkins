@@ -17,3 +17,5 @@ verif/hawk/inter.fsdb
 verif/hawk/inter.vpd
 verif/hawk/work.lib++/
 verif/vkits/hawk/._*
+verif/hawk/*.stdout
+verif/hawk/*.pyc
